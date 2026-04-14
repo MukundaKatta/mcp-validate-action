@@ -24,11 +24,32 @@ jobs:
             exit 1
           fi
 
-  self-test:
+  self-test-valid:
+    name: Self-test (valid fixtures should pass)
     runs-on: ubuntu-latest
     needs: test
     steps:
       - uses: actions/checkout@v4
       - uses: ./
         with:
-          config-path: 'test/fixtures/**/*.json'
+          config-path: 'test/fixtures/valid.json'
+
+  self-test-broken:
+    name: Self-test (broken fixtures should fail)
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run action on broken fixture, expect failure
+        id: run_action
+        continue-on-error: true
+        uses: ./
+        with:
+          config-path: 'test/fixtures/broken.json'
+      - name: Assert action failed
+        run: |
+          if [ "${{ steps.run_action.outcome }}" != "failure" ]; then
+            echo "Expected action to fail on broken fixture, but it succeeded."
+            exit 1
+          fi
+          echo "✓ Action correctly exited with failure on broken fixture"
