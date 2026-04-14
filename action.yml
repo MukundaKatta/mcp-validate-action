@@ -1,0 +1,32 @@
+name: 'MCP Config Validator'
+description: 'Validates MCP server configs (mcp.json, .mcp.json, claude_desktop_config.json) against the MCP spec'
+author: 'MukundaKatta'
+branding:
+  icon: 'check-circle'
+  color: 'purple'
+
+inputs:
+  config-path:
+    description: 'Glob pattern for MCP config files to validate. Default catches common locations.'
+    required: false
+    default: '**/{mcp,claude_desktop_config,.mcp}.json'
+  strict:
+    description: 'Fail on warnings as well as errors. Default false.'
+    required: false
+    default: 'false'
+  fail-on-missing:
+    description: 'Fail if no config files are found. Default false.'
+    required: false
+    default: 'false'
+
+outputs:
+  files-checked:
+    description: 'Number of config files validated'
+  errors:
+    description: 'Number of validation errors found'
+  warnings:
+    description: 'Number of validation warnings found'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'

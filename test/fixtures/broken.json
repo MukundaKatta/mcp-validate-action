@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "leaky": {
+      "command": "node",
+      "env": {
+        "OPENAI_API_KEY": "sk-proj-fake-hardcoded-secret"
+      }
+    },
+    "both": {
+      "command": "npx",
+      "url": "https://example.com/mcp"
+    },
+    "rel": {
+      "command": "./scripts/run.sh"
+    }
+  }
+}
