@@ -8,6 +8,14 @@ uses [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **New rule: `autoapprove-wildcard`** (error) — `autoApprove: ["*"]`
+  or `alwaysAllow: ["*"]` turns off every tool-call confirmation,
+  including destructive ones. 33 built-in rules.
+- **New rule: `args-with-newline`** (error) — literal `\n` / `\r`
+  inside an `args` string. Almost always a paste of a multiline
+  script; the child process sees literal newlines in argv.
+- **3 more providers** — Braintree (context-scoped to `BRAINTREE`),
+  Snowflake PATs (`ver_…`), Fastly (context-scoped to `FASTLY`).
 - **Per-server rule suppression.** A server entry can now include
   `"x-mcpcheck-ignore": ["rule-id", …]` to silence specific rules on
   just that entry. Added to `KNOWN_SERVER_FIELDS` so `unknown-field`

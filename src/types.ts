@@ -78,6 +78,8 @@ export interface RulesConfig {
   urlEmbeddedCredentials: RuleConfig;
   passwordFlagLiteral: RuleConfig;
   missingDigestPin: RuleConfig;
+  autoapproveWildcard: RuleConfig;
+  argsWithNewline: RuleConfig;
 }
 
 export interface Mcpcheckconfig {

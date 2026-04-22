@@ -23,6 +23,8 @@ import { nonAsciiServerNameRule } from "./non-ascii-server-name.js";
 import { urlEmbeddedCredsRule } from "./url-embedded-creds.js";
 import { passwordFlagLiteralRule } from "./password-flag-literal.js";
 import { missingDigestPinRule } from "./missing-digest-pin.js";
+import { autoapproveWildcardRule } from "./autoapprove-wildcard.js";
+import { argsWithNewlineRule } from "./args-with-newline.js";
 
 export const BUILTIN_RULES: Rule[] = [
   structureRules,
@@ -49,4 +51,6 @@ export const BUILTIN_RULES: Rule[] = [
   urlEmbeddedCredsRule,
   passwordFlagLiteralRule,
   missingDigestPinRule,
+  autoapproveWildcardRule,
+  argsWithNewlineRule,
 ];

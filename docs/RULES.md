@@ -30,6 +30,8 @@ This page is generated from `src/rule-docs.ts`. Don't edit it by hand.
 | [`unstable-reference`](#unstable-reference) | warning | no | `npx <pkg>` / `uvx <pkg>` / `docker run <image>` without a pinned version. |
 | [`http-without-auth`](#http-without-auth) | warning | no | A URL-transport server targets an https endpoint but declares no `Authorization` header. |
 | [`plaintext-http-with-token`](#plaintext-http-with-token) | error | no | The URL starts with `http://` (non-local) AND the server declares `Authorization` / `X-API-Key` / `Cookie` / similar. |
+| [`autoapprove-wildcard`](#autoapprove-wildcard) | error | no | Server opts every tool call out of user confirmation. |
+| [`args-with-newline`](#args-with-newline) | error | no | An entry in `args` contains `\n` or `\r`. |
 | [`missing-digest-pin`](#missing-digest-pin) | info | no | `docker run image:1.0.0` pins the tag, but tags can be re-pushed. |
 | [`url-embedded-credentials`](#url-embedded-credentials) | error | no | `url: "https://user:password@host/…"` embeds RFC 3986 userinfo. |
 | [`password-flag-literal`](#password-flag-literal) | error | no | `args` contains `--password foo` / `--token xyz` / `--api-key abc` with a literal value (not `${VAR}`). |
@@ -257,6 +259,32 @@ The URL starts with `http://` (non-local) AND the server declares `Authorization
 That token rides over the wire in cleartext; any on-path attacker sees it. `invalid-url` warns about plain http to non-local hosts in general; this rule fires only on the unambiguously-bad case where a credential is also being sent.
 
 **Fix:** switch the URL scheme to https (or drop the credential header if the server really is open).
+
+## autoapprove-wildcard
+
+**`autoApprove` / `alwaysAllow` contains `"*"`**
+
+- Default severity: `error`
+- Autofix: no
+
+Server opts every tool call out of user confirmation.
+
+The whole point of client-side confirmation prompts is to protect the user from the server doing something destructive without their approval. `["*"]` hands that protection away in one line.
+
+**Fix:** list the specific tool names that are safe to run without confirmation.
+
+## args-with-newline
+
+**Literal newline inside an `args` string**
+
+- Default severity: `error`
+- Autofix: no
+
+An entry in `args` contains `\n` or `\r`.
+
+Almost always a paste of a multiline script into a single JSON string. The MCP client hands each `args` entry to the OS process as-is; the child sees a literal newline in argv, which isn't what the user meant.
+
+**Fix:** split into separate `args` entries, or if you really need a multiline script, wrap in `bash -c` with the whole script as one arg.
 
 ## missing-digest-pin
 

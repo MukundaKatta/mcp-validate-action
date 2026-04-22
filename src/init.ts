@@ -65,7 +65,9 @@ const DEFAULT_CONFIG = `{
     "nonAsciiServerName":    { "enabled": true,  "severity": "info"    },
     "urlEmbeddedCredentials": { "enabled": true, "severity": "error"   },
     "passwordFlagLiteral":   { "enabled": true,  "severity": "error"   },
-    "missingDigestPin":      { "enabled": true,  "severity": "info"    }
+    "missingDigestPin":      { "enabled": true,  "severity": "info"    },
+    "autoapproveWildcard":   { "enabled": true,  "severity": "error"   },
+    "argsWithNewline":       { "enabled": true,  "severity": "error"   }
   }
 }
 `;

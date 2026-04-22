@@ -32,6 +32,8 @@ export const DEFAULT_CONFIG: Mcpcheckconfig = {
     urlEmbeddedCredentials: { enabled: true, severity: "error" },
     passwordFlagLiteral: { enabled: true, severity: "error" },
     missingDigestPin: { enabled: true, severity: "info" },
+    autoapproveWildcard: { enabled: true, severity: "error" },
+    argsWithNewline: { enabled: true, severity: "error" },
   },
 };
 

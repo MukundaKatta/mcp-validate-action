@@ -185,6 +185,26 @@ Plain-http local endpoints are handled separately by the \`invalid-url\` rule (h
 **Fix:** switch the URL scheme to https (or drop the credential header if the server really is open).`,
   },
   {
+    id: "autoapprove-wildcard",
+    title: "`autoApprove` / `alwaysAllow` contains `\"*\"`",
+    defaultSeverity: "error",
+    autofix: false,
+    summary: "Server opts every tool call out of user confirmation.",
+    details: `The whole point of client-side confirmation prompts is to protect the user from the server doing something destructive without their approval. \`["*"]\` hands that protection away in one line.
+
+**Fix:** list the specific tool names that are safe to run without confirmation.`,
+  },
+  {
+    id: "args-with-newline",
+    title: "Literal newline inside an `args` string",
+    defaultSeverity: "error",
+    autofix: false,
+    summary: "An entry in `args` contains `\\n` or `\\r`.",
+    details: `Almost always a paste of a multiline script into a single JSON string. The MCP client hands each \`args\` entry to the OS process as-is; the child sees a literal newline in argv, which isn't what the user meant.
+
+**Fix:** split into separate \`args\` entries, or if you really need a multiline script, wrap in \`bash -c\` with the whole script as one arg.`,
+  },
+  {
     id: "missing-digest-pin",
     title: "Docker image is tag-pinned but not digest-pinned",
     defaultSeverity: "info",

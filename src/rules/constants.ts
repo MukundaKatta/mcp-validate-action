@@ -160,6 +160,9 @@ export const SECRET_PATTERNS: SecretPattern[] = [
   },
   // Buildkite API tokens — bkua_ (user) / bks_ (org) / static prefix.
   { name: "Buildkite API token", re: /^(bkua_|bks_)[A-Za-z0-9]{40,}$/ },
+  { name: "Braintree API key", re: /^[a-z0-9]{32}$/, keyHint: /BRAINTREE/i },
+  { name: "Snowflake PAT", re: /^ver_[A-Za-z0-9]{40,}$/ },
+  { name: "Fastly API token", re: /^[A-Za-z0-9_-]{32}$/, keyHint: /FASTLY/i },
   // OpenRouter uses sk-or- prefix but the broad OpenAI pattern matches first
   // (it's earlier in the array). Same label-resolution reasoning as
   // Clerk → Stripe and DeepSeek → OpenAI: the finding is still correct.

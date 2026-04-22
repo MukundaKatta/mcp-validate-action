@@ -253,6 +253,22 @@
             "enabled": true,
             "severity": "info"
           }
+        },
+        "autoapproveWildcard": {
+          "$ref": "#/$defs/RuleConfig",
+          "description": "`autoApprove` / `alwaysAllow` contains `\"*\"` — Server opts every tool call out of user confirmation.",
+          "default": {
+            "enabled": true,
+            "severity": "error"
+          }
+        },
+        "argsWithNewline": {
+          "$ref": "#/$defs/RuleConfig",
+          "description": "Literal newline inside an `args` string — An entry in `args` contains `\\n` or `\\r`.",
+          "default": {
+            "enabled": true,
+            "severity": "error"
+          }
         }
       }
     },

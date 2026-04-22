@@ -265,6 +265,9 @@ describe("checkSource - expanded secret providers", () => {
     ["STYTCH_SECRET", "secret-test-" + "a".repeat(40), "Stytch project secret"],
     ["HEROKU_API_KEY", "12345678-1234-1234-1234-123456789abc", "Heroku API key"],
     ["BUILDKITE_API_TOKEN", "bkua_" + "a".repeat(44), "Buildkite API token"],
+    ["BRAINTREE_API_KEY", "a".repeat(32), "Braintree API key"],
+    ["SNOWFLAKE_PAT", "ver_" + "a".repeat(44), "Snowflake PAT"],
+    ["FASTLY_API_TOKEN", "a".repeat(32), "Fastly API token"],
     // Synthetic value that matches the Discord regex (three dotted segments
     // of the right lengths) without looking like a real base64-encoded
     // snowflake id. We use uppercase placeholder runs so GitHub's secret
