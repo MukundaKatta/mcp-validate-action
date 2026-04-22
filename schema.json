@@ -213,6 +213,14 @@
             "enabled": true,
             "severity": "error"
           }
+        },
+        "duplicateImage": {
+          "$ref": "#/$defs/RuleConfig",
+          "description": "Two servers run the same docker image — Two server entries resolve to the same `docker run image:tag` reference.",
+          "default": {
+            "enabled": true,
+            "severity": "warning"
+          }
         }
       }
     },

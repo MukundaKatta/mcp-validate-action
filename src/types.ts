@@ -73,6 +73,7 @@ export interface RulesConfig {
   emptyEnvValue: RuleConfig;
   cwdNotAbsolute: RuleConfig;
   secretInArgs: RuleConfig;
+  duplicateImage: RuleConfig;
 }
 
 export interface Mcpcheckconfig {

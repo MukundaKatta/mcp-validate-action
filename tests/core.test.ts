@@ -223,6 +223,9 @@ describe("checkSource - expanded secret providers", () => {
     ["AIRTABLE_PAT", "pat" + "a".repeat(14) + "." + "b".repeat(64), "Airtable personal access token"],
     ["VERCEL_BLOB_TOKEN", "vercel_blob_rw_" + "a".repeat(44), "Vercel Blob token"],
     ["LAMBDA_API_KEY", "secret_" + "a".repeat(44), "Lambda Labs API key"],
+    ["DATABRICKS_TOKEN", "dapi" + "a".repeat(32), "Databricks access token"],
+    ["BITBUCKET_APP_PASSWORD", "a".repeat(24), "Bitbucket app password"],
+    ["FRESHDESK_API_KEY", "a".repeat(30), "Freshdesk API key"],
     // Synthetic value that matches the Discord regex (three dotted segments
     // of the right lengths) without looking like a real base64-encoded
     // snowflake id. We use uppercase placeholder runs so GitHub's secret

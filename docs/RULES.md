@@ -30,6 +30,7 @@ This page is generated from `src/rule-docs.ts`. Don't edit it by hand.
 | [`unstable-reference`](#unstable-reference) | warning | no | `npx <pkg>` / `uvx <pkg>` / `docker run <image>` without a pinned version. |
 | [`http-without-auth`](#http-without-auth) | warning | no | A URL-transport server targets an https endpoint but declares no `Authorization` header. |
 | [`plaintext-http-with-token`](#plaintext-http-with-token) | error | no | The URL starts with `http://` (non-local) AND the server declares `Authorization` / `X-API-Key` / `Cookie` / similar. |
+| [`duplicate-image`](#duplicate-image) | warning | no | Two server entries resolve to the same `docker run image:tag` reference. |
 | [`secret-in-args`](#secret-in-args) | error | no | A string in `args` matches a known API-key format. |
 | [`cwd-not-absolute`](#cwd-not-absolute) | warning | no | Server declares `cwd: "./foo"` / `cwd: "foo"`. |
 | [`empty-env-value`](#empty-env-value) | warning | no | An `env` entry has value `""`. |
@@ -252,6 +253,17 @@ The URL starts with `http://` (non-local) AND the server declares `Authorization
 That token rides over the wire in cleartext; any on-path attacker sees it. `invalid-url` warns about plain http to non-local hosts in general; this rule fires only on the unambiguously-bad case where a credential is also being sent.
 
 **Fix:** switch the URL scheme to https (or drop the credential header if the server really is open).
+
+## duplicate-image
+
+**Two servers run the same docker image**
+
+- Default severity: `warning`
+- Autofix: no
+
+Two server entries resolve to the same `docker run image:tag` reference.
+
+Usually a copy-paste leftover where the user meant to edit something about the second entry and didn't. Legitimate duplicates exist (different env, different ports, staged vs prod), so default severity is warning. Same tag-detection logic as `unstable-reference` — the rule skips the docker subcommand and flag-values before picking the image argument.
 
 ## secret-in-args
 

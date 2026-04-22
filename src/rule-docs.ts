@@ -185,6 +185,14 @@ Plain-http local endpoints are handled separately by the \`invalid-url\` rule (h
 **Fix:** switch the URL scheme to https (or drop the credential header if the server really is open).`,
   },
   {
+    id: "duplicate-image",
+    title: "Two servers run the same docker image",
+    defaultSeverity: "warning",
+    autofix: false,
+    summary: "Two server entries resolve to the same `docker run image:tag` reference.",
+    details: `Usually a copy-paste leftover where the user meant to edit something about the second entry and didn't. Legitimate duplicates exist (different env, different ports, staged vs prod), so default severity is warning. Same tag-detection logic as \`unstable-reference\` — the rule skips the docker subcommand and flag-values before picking the image argument.`,
+  },
+  {
     id: "secret-in-args",
     title: "Hardcoded secret in `args`",
     defaultSeverity: "error",

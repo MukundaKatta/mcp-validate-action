@@ -8,6 +8,13 @@ uses [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **`mcpcheck audit <file...>`** — combined report: list-servers +
+  stats + lint findings in one pass, one screen.
+- **New rule: `duplicate-image`** (warning) — two servers resolve
+  to the same `docker run image:tag`. Usually a copy-paste leftover.
+  27 built-in rules.
+- **3 more secret providers** — Databricks (`dapi…`), Bitbucket
+  app passwords (context-scoped), Freshdesk (context-scoped).
 - **New rule: `secret-in-args`** (error) — `hardcoded-secret` only
   scanned `env`; this rule catches the other half where users
   paste `mcp-server-foo --token sk-abc…` into `args`. Same

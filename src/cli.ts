@@ -206,6 +206,10 @@ async function main(): Promise<void> {
     process.stdout.write(text);
     process.exit(0);
   }
+  if (process.argv[2] === "audit") {
+    await handleAudit(process.argv.slice(3));
+    return;
+  }
   if (process.argv[2] === "list-servers") {
     await handleListServers(process.argv.slice(3));
     return;
@@ -727,6 +731,37 @@ function sortServerKeys(parsed: unknown): unknown {
     out[k] = v;
   }
   return out;
+}
+
+async function handleAudit(argv: string[]): Promise<void> {
+  const files = argv.filter((a) => !a.startsWith("-"));
+  if (files.length === 0 || argv.includes("-h") || argv.includes("--help")) {
+    process.stderr.write(
+      "Usage: mcpcheck audit <file...>\n" +
+        "Combined report: lint findings + stats + list-servers. One pass, one screen.\n"
+    );
+    process.exit(files.length === 0 ? 2 : 0);
+  }
+  const { listServersFromFile, formatServerRowsText } = await import("./list-servers.js");
+  const { statsFromFile, formatStatsText } = await import("./stats.js");
+  const rows = [];
+  const statsList = [];
+  for (const file of files) {
+    try {
+      rows.push(...(await listServersFromFile(file)));
+      statsList.push(await statsFromFile(file));
+    } catch (err) {
+      process.stderr.write(pc.yellow(`[audit] skip ${file}: ${(err as Error).message}\n`));
+    }
+  }
+  const report = await checkFiles(files);
+  process.stdout.write(pc.bold("━━━ Servers ━━━\n"));
+  process.stdout.write(formatServerRowsText(rows));
+  process.stdout.write("\n" + pc.bold("━━━ Stats ━━━\n"));
+  process.stdout.write(formatStatsText(statsList));
+  process.stdout.write("\n" + pc.bold("━━━ Findings ━━━\n"));
+  process.stdout.write(formatText(report) + "\n");
+  process.exit(exitCode(report, "error"));
 }
 
 async function handleListServers(argv: string[]): Promise<void> {

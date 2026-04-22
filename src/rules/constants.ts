@@ -128,6 +128,13 @@ export const SECRET_PATTERNS: SecretPattern[] = [
   { name: "Vercel Blob token", re: /^vercel_blob_(rw|ro)_[A-Za-z0-9_-]{40,}$/ },
   // Lambda Labs API keys — context-scoped since they're plain alnum.
   { name: "Lambda Labs API key", re: /^secret_[A-Za-z0-9_-]{40,}$/, keyHint: /LAMBDA/i },
+  // Databricks personal access tokens — dapi prefix + 32 hex.
+  { name: "Databricks access token", re: /^dapi[a-f0-9]{32}(-\d+)?$/ },
+  // Bitbucket app passwords are alphanumeric; scope by env name.
+  { name: "Bitbucket app password", re: /^[A-Za-z0-9]{20,}$/, keyHint: /BITBUCKET/i },
+  // Freshdesk uses a user-alnum followed by a fixed "X" or similar tail.
+  // Narrow prefix + length; context-scope for safety.
+  { name: "Freshdesk API key", re: /^[A-Za-z0-9]{20,40}$/, keyHint: /FRESHDESK/i },
   // Google Cloud service account keys are JSON blobs; people sometimes paste the
   // whole thing into a single env var value. Match on the private_key_id field,
   // which is always a 40-char hex string immediately preceded by that key name.
