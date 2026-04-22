@@ -291,6 +291,77 @@ describe("dangerous-command rule", () => {
   });
 });
 
+describe("init", () => {
+  it("writes both files in a clean dir and refuses to overwrite without --force", async () => {
+    const { runInit } = await import("../src/init.js");
+    const { mkdtemp, readFile } = await import("node:fs/promises");
+    const { tmpdir } = await import("node:os");
+    const { join } = await import("node:path");
+
+    const dir = await mkdtemp(join(tmpdir(), "mcpcheck-init-"));
+
+    const first = await runInit({ cwd: dir, force: false });
+    assert.deepEqual(first.written.sort(), [
+      ".github/workflows/mcpcheck.yml",
+      "mcpcheck.config.json",
+    ]);
+    assert.deepEqual(first.skipped, []);
+
+    const cfg = JSON.parse(await readFile(join(dir, "mcpcheck.config.json"), "utf8")) as {
+      rules: Record<string, { enabled: boolean; severity: string }>;
+    };
+    assert.equal(cfg.rules["dangerousCommand"]!.severity, "error");
+
+    const workflow = await readFile(join(dir, ".github/workflows/mcpcheck.yml"), "utf8");
+    assert.ok(workflow.includes("MukundaKatta/mcpcheck@v1"), "workflow should reference the action");
+    assert.ok(workflow.includes("upload-sarif"), "workflow should upload SARIF");
+
+    // Second run without --force: everything skipped.
+    const second = await runInit({ cwd: dir, force: false });
+    assert.deepEqual(second.written, []);
+    assert.deepEqual(second.skipped.sort(), [
+      ".github/workflows/mcpcheck.yml",
+      "mcpcheck.config.json",
+    ]);
+
+    // --force overwrites.
+    const third = await runInit({ cwd: dir, force: true });
+    assert.deepEqual(third.skipped, []);
+    assert.equal(third.written.length, 2);
+  });
+
+  it("--config-only skips the workflow", async () => {
+    const { runInit } = await import("../src/init.js");
+    const { mkdtemp, access } = await import("node:fs/promises");
+    const { tmpdir } = await import("node:os");
+    const { join } = await import("node:path");
+
+    const dir = await mkdtemp(join(tmpdir(), "mcpcheck-init-"));
+    const result = await runInit({ cwd: dir, force: false, configOnly: true });
+    assert.deepEqual(result.written, ["mcpcheck.config.json"]);
+    await access(join(dir, "mcpcheck.config.json"));
+    await assert.rejects(() => access(join(dir, ".github/workflows/mcpcheck.yml")));
+  });
+});
+
+describe("init config file parses as our own --config", async () => {
+  it("the scaffolded mcpcheck.config.json loads via loadConfigFile", async () => {
+    const { runInit } = await import("../src/init.js");
+    const { mergeConfig, loadConfigFile } = await import("../src/config.js");
+    const { mkdtemp } = await import("node:fs/promises");
+    const { tmpdir } = await import("node:os");
+    const { join } = await import("node:path");
+
+    const dir = await mkdtemp(join(tmpdir(), "mcpcheck-init-"));
+    await runInit({ cwd: dir, force: false, configOnly: true });
+    const loaded = loadConfigFile(join(dir, "mcpcheck.config.json"));
+    const defaults = mergeConfig();
+    // Scaffolded config matches the defaults we merge in code: this is the
+    // guarantee that the file can be deleted without behavioural change.
+    assert.deepEqual(loaded.rules, defaults.rules);
+  });
+});
+
 describe("rule-docs", () => {
   it("exposes an explanation for every built-in rule id", async () => {
     const { RULE_DOCS, explainRule } = await import("../src/rule-docs.js");

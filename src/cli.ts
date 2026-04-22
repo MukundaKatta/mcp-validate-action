@@ -25,7 +25,8 @@ import { formatJson } from "./formatters/json.js";
 import { formatSarif } from "./formatters/sarif.js";
 import { formatGithub } from "./formatters/github.js";
 import { explainRule, listRuleIds } from "./rule-docs.js";
-import type { Mcpcheckconfig, Rule } from "./types.js";
+import { runInit } from "./init.js";
+import type { Mcpcheckconfig, Rule, RunReport, FileReport } from "./types.js";
 
 type Format = "text" | "json" | "sarif" | "github";
 
@@ -37,6 +38,7 @@ interface CliOptions {
   output?: string;
   explain?: string;
   listRules?: boolean;
+  quiet: boolean;
 }
 
 /**
@@ -75,10 +77,19 @@ function expandTilde(p: string): string {
 }
 
 async function main(): Promise<void> {
+  // `mcpcheck init` is handled before commander parses, because commander
+  // doesn't combine well with a positional-arg default command. We only
+  // peek the first raw arg; everything else still goes through the main
+  // command parser below.
+  if (process.argv[2] === "init") {
+    await handleInit(process.argv.slice(3));
+    return;
+  }
+
   const program = new Command()
     .name("mcpcheck")
     .description(
-      "Validate MCP (Model Context Protocol) config files for Claude, Cursor, Cline, Windsurf, and Zed."
+      "Validate MCP (Model Context Protocol) config files for Claude, Claude Code, Cursor, Cline, Windsurf, and Zed."
     )
     .argument("[inputs...]", "file paths or globs (defaults to common MCP config locations)")
     .option("-c, --config <path>", "mcpcheck config file")
@@ -86,9 +97,24 @@ async function main(): Promise<void> {
     .option("--fix", "apply autofixes in place", false)
     .option("--fail-on <level>", "exit nonzero threshold: error | warning | info | never", "error")
     .option("-o, --output <path>", "write formatted output to a file")
+    .option("-q, --quiet", "only print files that have issues", false)
     .option("--explain <rule-id>", "print docs for a rule and exit")
     .option("--list-rules", "list all rule ids and exit", false)
     .version(readVersion(), "-v, --version")
+    .addHelpText(
+      "after",
+      [
+        "",
+        "Examples:",
+        "  mcpcheck                                     scan common MCP paths (auto-discovery)",
+        "  mcpcheck ~/.cursor/mcp.json                  check a single file",
+        "  mcpcheck '**/mcp.json' --format sarif        emit SARIF for Code Scanning",
+        "  mcpcheck config.json --fix                   apply autofixes in place",
+        "  mcpcheck --fail-on warning                   strict CI mode",
+        "  mcpcheck --explain hardcoded-secret          print rule documentation",
+        "  mcpcheck init                                scaffold mcpcheck.config.json + CI",
+      ].join("\n")
+    )
     .parse(process.argv);
 
   const rawInputs = program.args.length > 0 ? program.args : DEFAULT_GLOBS;
@@ -110,7 +136,7 @@ async function main(): Promise<void> {
     process.exit(0);
   }
 
-  const config: Mcpcheckconfig = opts.config ? loadConfigFile(opts.config) : mergeConfig();
+  const config: Mcpcheckconfig = opts.config ? loadConfigFileSafe(opts.config) : mergeConfig();
   const extraRules = await loadPluginRules(config);
 
   const files = await expandInputs(rawInputs);
@@ -135,13 +161,64 @@ async function main(): Promise<void> {
     }
   }
 
-  const out = renderReport(opts.format, report);
+  const viewReport = opts.quiet && opts.format === "text" ? filterQuiet(report) : report;
+  const out = renderReport(opts.format, viewReport);
   if (opts.output) {
     await writeFile(opts.output, out, "utf8");
   } else {
     process.stdout.write(out + (opts.format === "text" ? "\n" : "\n"));
   }
   process.exit(exitCode(report, opts.failOn));
+}
+
+/**
+ * For --quiet text output, drop files with no issues from the printed report
+ * while keeping aggregate counts. Non-text formats are machine-readable and
+ * should not be filtered; --quiet is a text-UX affordance.
+ */
+function filterQuiet(report: RunReport): RunReport {
+  const files: FileReport[] = report.files.filter((f) => f.issues.length > 0);
+  return { ...report, files };
+}
+
+async function handleInit(argv: string[]): Promise<void> {
+  const initCmd = new Command("init")
+    .description("Scaffold mcpcheck.config.json and .github/workflows/mcpcheck.yml")
+    .option("--config-only", "only write mcpcheck.config.json", false)
+    .option("--workflow-only", "only write the GitHub Actions workflow", false)
+    .option("--force", "overwrite existing files", false)
+    .parse(["node", "mcpcheck", ...argv]);
+  const opts = initCmd.opts<{ configOnly: boolean; workflowOnly: boolean; force: boolean }>();
+  const result = await runInit({
+    cwd: process.cwd(),
+    force: opts.force,
+    configOnly: opts.configOnly,
+    workflowOnly: opts.workflowOnly,
+  });
+  for (const path of result.written) {
+    process.stdout.write(pc.green(`[+] ${path}\n`));
+  }
+  for (const path of result.skipped) {
+    process.stderr.write(
+      pc.yellow(`[=] ${path} (already exists; pass --force to overwrite)\n`)
+    );
+  }
+  if (result.written.length === 0) {
+    process.exit(1);
+  }
+  process.exit(0);
+}
+
+function loadConfigFileSafe(path: string): Mcpcheckconfig {
+  try {
+    return loadConfigFile(path);
+  } catch (err) {
+    const message = (err as Error)?.message ?? String(err);
+    process.stderr.write(
+      pc.red(`Failed to load --config file "${path}": ${message}\n`)
+    );
+    process.exit(2);
+  }
 }
 
 async function loadPluginRules(config: Mcpcheckconfig): Promise<Rule[]> {

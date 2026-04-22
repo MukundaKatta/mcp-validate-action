@@ -8,6 +8,17 @@ uses [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **`mcpcheck init`** — scaffold `mcpcheck.config.json` (with every rule
+  spelled out at its default) and `.github/workflows/mcpcheck.yml` (runs
+  mcpcheck on every PR, uploads SARIF to Code Scanning). `--config-only`,
+  `--workflow-only`, and `--force` control scope and overwrite behaviour.
+- **`-q`, `--quiet`** — in text output, hide files with zero issues while
+  keeping aggregate counts. JSON / SARIF / GitHub formats are unchanged
+  (they're consumed by other tools and must stay deterministic).
+- **CLI examples in `--help`.**
+- **Graceful error for bad `--config`.** A malformed `mcpcheck.config.json`
+  now exits with a clear `Failed to load --config file …` message instead
+  of an opaque stack trace.
 - **`dangerous-command` rule (default: error).** Flags privilege escalation
   (`sudo`, `doas`, `pkexec`, `runas`, `gosu`, `su`), remote-shell pipes
   (`curl https://... | sh`, also detected through `bash -c` / `sh -c`

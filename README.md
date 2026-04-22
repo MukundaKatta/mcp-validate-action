@@ -59,6 +59,10 @@ mcpcheck ~/.cursor/mcp.json                  # single file
 mcpcheck '**/mcp.json' --format sarif        # emit SARIF for Code Scanning
 mcpcheck config.json --fix                   # apply autofixes in place
 mcpcheck config.json --fail-on warning       # strict CI
+mcpcheck --quiet                             # only show files that have issues
+mcpcheck --explain hardcoded-secret          # print docs for one rule
+mcpcheck --list-rules                        # list every built-in rule id
+mcpcheck init                                # scaffold mcpcheck.config.json + CI
 ```
 
 | Flag | Purpose |
@@ -68,7 +72,23 @@ mcpcheck config.json --fail-on warning       # strict CI
 | `--config <path>` | JSON config file |
 | `--fail-on error\|warning\|info\|never` | Exit-code threshold (default `error`) |
 | `--output <path>` | Write formatted output to a file |
+| `-q`, `--quiet` | In text output, hide files with no issues |
+| `--explain <rule-id>` | Print rule docs and exit |
+| `--list-rules` | List built-in rule ids and exit |
 | `-v`, `--version` | Print version |
+
+### `mcpcheck init`
+
+Scaffold a project's lint setup in one command:
+
+```bash
+mcpcheck init                  # writes mcpcheck.config.json + .github/workflows/mcpcheck.yml
+mcpcheck init --config-only    # only the config file
+mcpcheck init --workflow-only  # only the GH Actions workflow
+mcpcheck init --force          # overwrite existing files
+```
+
+The generated workflow runs mcpcheck on every PR that touches an MCP config and uploads SARIF so findings appear in your repo's Security tab.
 
 ### GitHub Action
 
@@ -200,7 +220,7 @@ Running `mcpcheck` with no arguments scans every path in the table above, plus `
 ```bash
 npm install
 npm run build
-npm test         # 39 passing
+npm test         # 42 passing
 npm run docs:gen # regenerate docs/RULES.md from src/rule-docs.ts
 ```
 

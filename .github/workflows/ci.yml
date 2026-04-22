@@ -33,6 +33,9 @@ jobs:
       - name: Test
         run: npm test
 
+      - name: docs/RULES.md is in sync with src/rule-docs.ts
+        run: npm run docs:check
+
   self-test:
     runs-on: ubuntu-latest
     needs: build-and-test
@@ -47,7 +50,10 @@ jobs:
           npm run build
 
       - name: Must-pass on valid fixtures
-        run: node dist/cli.js tests/fixtures/valid-stdio.json tests/fixtures/valid-http.json
+        run: |
+          node dist/cli.js tests/fixtures/valid-stdio.json tests/fixtures/valid-http.json
+          node dist/cli.js tests/fixtures/zed-settings.json
+          node dist/cli.js tests/fixtures/claude-desktop-jsonc.json
 
       - name: Must-fail on broken fixture
         run: |
@@ -56,5 +62,24 @@ jobs:
           code=$?
           if [ $code -eq 0 ]; then
             echo "Expected non-zero exit on broken.json, got $code"
+            exit 1
+          fi
+
+      - name: --list-rules and --explain work
+        run: |
+          node dist/cli.js --list-rules | grep -q dangerous-command
+          node dist/cli.js --explain hardcoded-secret | grep -q 'default:'
+
+      - name: init writes config + workflow in a clean dir
+        run: |
+          mkdir -p /tmp/init-check && cd /tmp/init-check
+          node $GITHUB_WORKSPACE/dist/cli.js init
+          test -f mcpcheck.config.json
+          test -f .github/workflows/mcpcheck.yml
+          # Re-running without --force must exit 1.
+          set +e
+          node $GITHUB_WORKSPACE/dist/cli.js init
+          if [ $? -ne 1 ]; then
+            echo "Expected init to exit 1 on existing files without --force"
             exit 1
           fi
