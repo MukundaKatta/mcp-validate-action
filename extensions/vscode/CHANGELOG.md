@@ -34,3 +34,8 @@ All notable changes to the mcpcheck VS Code extension.
 - New command: `mcpcheck: Fix all autofixable issues across workspace`.
   Finds every MCP config in the workspace (per `mcpcheck.filePatterns`),
   applies every available autofix, saves the file, and re-lints.
+- **Hover** over any mcpcheck squiggle now shows the matching rule's
+  full documentation (title + summary + details) in the tooltip.
+- **CodeLens** at the top of every linted MCP config file shows the
+  issue count and surfaces `Fix all` / `Explain...` buttons inline, so
+  commands are discoverable without the command palette.

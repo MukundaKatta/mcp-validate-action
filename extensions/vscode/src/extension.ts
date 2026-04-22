@@ -90,6 +90,20 @@ export function activate(context: vscode.ExtensionContext): void {
         ],
       }
     ),
+    vscode.languages.registerHoverProvider(
+      [
+        { scheme: "file", language: "json" },
+        { scheme: "file", language: "jsonc" },
+      ],
+      new McpcheckHoverProvider()
+    ),
+    vscode.languages.registerCodeLensProvider(
+      [
+        { scheme: "file", language: "json" },
+        { scheme: "file", language: "jsonc" },
+      ],
+      new McpcheckCodeLensProvider(collection)
+    ),
     vscode.commands.registerCommand("mcpcheck.lint", () => {
       const doc = vscode.window.activeTextEditor?.document;
       if (doc) lintIfEligible(doc);
@@ -376,6 +390,83 @@ class McpcheckCodeActionProvider implements vscode.CodeActionProvider {
       actions.push(all);
     }
     return actions;
+  }
+}
+
+/**
+ * Hover provider — when the cursor is over an mcpcheck diagnostic, show the
+ * rule's title + summary from RULE_DOCS (the same source the CLI's --explain
+ * prints) in a MarkdownString so the user sees context without clicking.
+ */
+class McpcheckHoverProvider implements vscode.HoverProvider {
+  provideHover(document: vscode.TextDocument, position: vscode.Position): vscode.Hover | undefined {
+    const diags = vscode.languages.getDiagnostics(document.uri);
+    const at = diags.find(
+      (d) => d.source === DIAGNOSTIC_SOURCE && d.range.contains(position)
+    );
+    if (!at) return undefined;
+    const issue = diagnosticIssues.get(at);
+    if (!issue) return undefined;
+    const text = explainRule(issue.ruleId);
+    if (!text) return undefined;
+
+    // explainRule() output is a plain-text block with the title + summary +
+    // details. Render as Markdown so headings render nicely in the hover.
+    const md = new vscode.MarkdownString(text, true);
+    md.isTrusted = true;
+    return new vscode.Hover(md, at.range);
+  }
+}
+
+/**
+ * CodeLens provider — two lenses at the top of every linted MCP config file
+ * when it has issues: "Fix all" (runs mcpcheck.fixAll on that file) and
+ * "Explain issues" (opens a rule-docs quickpick for the ids present).
+ * Makes the commands discoverable without hunting the command palette.
+ */
+class McpcheckCodeLensProvider implements vscode.CodeLensProvider {
+  private readonly _onChange = new vscode.EventEmitter<void>();
+  readonly onDidChangeCodeLenses = this._onChange.event;
+
+  constructor(collection: vscode.DiagnosticCollection) {
+    // Fire the code-lens change event whenever diagnostics change, so the
+    // lens count stays in sync with the squiggles.
+    vscode.workspace.onDidChangeTextDocument(() => this._onChange.fire());
+    // The DiagnosticCollection API doesn't expose a change event, so we also
+    // poll on save.
+    vscode.workspace.onDidSaveTextDocument(() => this._onChange.fire());
+    void collection; // retained reference to keep linter happy
+  }
+
+  provideCodeLenses(document: vscode.TextDocument): vscode.CodeLens[] {
+    if (!isLintable(document)) return [];
+    const diags = vscode.languages
+      .getDiagnostics(document.uri)
+      .filter((d) => d.source === DIAGNOSTIC_SOURCE);
+    if (diags.length === 0) return [];
+    const fixable = diags.filter((d) => diagnosticIssues.get(d)?.fix).length;
+    const topRange = new vscode.Range(0, 0, 0, 0);
+    const lenses: vscode.CodeLens[] = [
+      new vscode.CodeLens(topRange, {
+        title: `mcpcheck: ${diags.length} issue(s)${fixable ? ` (${fixable} autofixable)` : ""}`,
+        command: "",
+      }),
+    ];
+    if (fixable > 0) {
+      lenses.push(
+        new vscode.CodeLens(topRange, {
+          title: "Fix all",
+          command: "mcpcheck.fixAll",
+        })
+      );
+    }
+    lenses.push(
+      new vscode.CodeLens(topRange, {
+        title: "Explain...",
+        command: "mcpcheck.explainRule",
+      })
+    );
+    return lenses;
   }
 }
 

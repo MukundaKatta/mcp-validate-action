@@ -8,6 +8,21 @@ uses [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Docker image on ghcr.io** — `ghcr.io/mukundakatta/mcpcheck` builds
+  on every main push (`:main`) and every semver tag (`:v1.2.3`,
+  `:1.2`, `:1`, `:latest`). Multi-arch (linux/amd64 + linux/arm64),
+  runs as a non-root user, `/work` is the expected mount point for the
+  target repo. Image is built from the repo-local Dockerfile and the
+  workflow smoke-tests `--list-rules` and `--version` after push, so a
+  broken image never lands on the registry.
+- **VS Code: hover shows rule docs** — hovering over any mcpcheck
+  squiggle renders the matching rule's `--explain` output in the
+  tooltip (MarkdownString), so users never have to click the rule-id
+  link to understand what they're looking at.
+- **VS Code: CodeLens at the top of every linted MCP config** — shows
+  issue counts (`mcpcheck: 3 issue(s) (2 autofixable)`) plus a `Fix all`
+  button (when fixes exist) and `Explain...` button. Makes the commands
+  discoverable without the command palette.
 - **`mcpcheck diff <a.json> <b.json>`** — compare the issues two MCP
   configs produce. Prints a `git diff`-style list of issues added and
   removed (identified by rule id + jsonPath + message), plus an

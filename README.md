@@ -54,6 +54,15 @@ npm run build
 node dist/cli.js        # same behavior as `mcpcheck`
 ```
 
+Or Docker:
+
+```bash
+docker run --rm -v "$PWD:/work" -w /work ghcr.io/mukundakatta/mcpcheck
+docker run --rm -v "$PWD:/work" -w /work ghcr.io/mukundakatta/mcpcheck mcp.json --format sarif
+```
+
+Tags: `:latest`, `:main`, `:vYYYY.M.D`. Multi-arch (`linux/amd64` + `linux/arm64`).
+
 ## Usage
 
 ### CLI

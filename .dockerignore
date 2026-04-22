@@ -1,0 +1,12 @@
+node_modules
+dist
+*.vsix
+.git
+.github
+.vscode
+tests
+docs
+playground
+extensions
+CHANGELOG.md
+README.md
