@@ -29,6 +29,7 @@ This page is generated from `src/rule-docs.ts`. Don't edit it by hand.
 | [`duplicate-server-name`](#duplicate-server-name) | error | no | Two server entries differ only by case. |
 | [`unstable-reference`](#unstable-reference) | warning | no | `npx <pkg>` / `uvx <pkg>` / `docker run <image>` without a pinned version. |
 | [`http-without-auth`](#http-without-auth) | warning | no | A URL-transport server targets an https endpoint but declares no `Authorization` header. |
+| [`placeholder-value`](#placeholder-value) | error | no | An `env` value looks like template text (`YOUR_API_KEY_HERE`, `<token>`, `xxx…`, `replace-me`, `TODO`). |
 | [`empty-args`](#empty-args) | warning | no | A command that needs arguments (`npx` / `uvx` / `docker` / shells) has `args: []`. |
 | [`typosquat-package`](#typosquat-package) | error | no | An `npx` / `uvx` package name is within edit distance 3 of an official `@modelcontextprotocol/*` server but doesn't match it. |
 | [`shell-metachars`](#shell-metachars) | error | no | `command` contains `\|`, `;`, `$(…)`, backticks, `&&`, `\|\|`, `&`, or `$VAR` but isn't a shell. |
@@ -233,6 +234,19 @@ Most remote MCP servers require a bearer token or similar auth. A config with an
 Plain-http local endpoints are handled separately by the `invalid-url` rule (http to non-localhost is already flagged). Real public no-auth endpoints exist — mock servers, open-data servers — so this defaults to warning rather than error.
 
 **Fix:** add a headers block with the substituted token, or disable the rule for this server if the endpoint really is open.
+
+## placeholder-value
+
+**Env value is a copy-paste placeholder**
+
+- Default severity: `error`
+- Autofix: no
+
+An `env` value looks like template text (`YOUR_API_KEY_HERE`, `<token>`, `xxx…`, `replace-me`, `TODO`).
+
+The config was probably pasted from a README and never completed. These values don't trigger `hardcoded-secret` (wrong format) and cause a confusing runtime failure at launch rather than at lint time.
+
+**Fix:** replace with the real value, or (usually what you want) `${VAR}` substitution.
 
 ## empty-args
 

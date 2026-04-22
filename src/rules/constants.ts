@@ -104,6 +104,14 @@ export const SECRET_PATTERNS: SecretPattern[] = [
   { name: "Segment write key", re: /^[A-Za-z0-9]{32}$/, keyHint: /SEGMENT/i },
   // Retool personal tokens have a "retool_" prefix followed by alnum.
   { name: "Retool access token", re: /^retool_[A-Za-z0-9_-]{24,}$/ },
+  // Pinecone API keys are UUID-shaped; context-scope so we don't fire on
+  // every UUID-looking value.
+  { name: "Pinecone API key", re: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, keyHint: /PINECONE/i },
+  // DeepSeek uses the same `sk-` prefix as OpenAI; the OpenAI pattern
+  // already catches these, so no dedicated entry (same label resolution
+  // reasoning as Clerk → Stripe).
+  // Supabase personal access tokens (different from the service_role JWT).
+  { name: "Supabase personal access token", re: /^sbp_[a-f0-9]{40}$/ },
   // Google Cloud service account keys are JSON blobs; people sometimes paste the
   // whole thing into a single env var value. Match on the private_key_id field,
   // which is always a 40-char hex string immediately preceded by that key name.

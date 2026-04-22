@@ -165,6 +165,14 @@
             "enabled": true,
             "severity": "warning"
           }
+        },
+        "placeholderValue": {
+          "$ref": "#/$defs/RuleConfig",
+          "description": "Env value is a copy-paste placeholder — An `env` value looks like template text (`YOUR_API_KEY_HERE`, `<token>`, `xxx…`, `replace-me`, `TODO`).",
+          "default": {
+            "enabled": true,
+            "severity": "error"
+          }
         }
       }
     },

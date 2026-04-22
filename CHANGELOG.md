@@ -8,6 +8,21 @@ uses [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **New rule: `placeholder-value`** (error) — flags env values that
+  look like template text: `YOUR_API_KEY_HERE`, `<token>`, `xxx…`,
+  `replace-me`, `TODO`, `PLACEHOLDER`, `changeme`. Doesn't trip
+  `hardcoded-secret` (wrong format) so pre-this-release a lint pass
+  could miss half-finished configs entirely. 21 built-in rules now.
+- **`mcpcheck fmt <file...>` / `--write`** — pretty-print 2-space,
+  sort server-map keys alphabetically, newline at EOF. Preserves
+  unrelated top-level keys so `zed/settings.json`-style configs
+  don't lose unrelated state.
+- **`mcpcheck graph <file...>`** — emit a Mermaid flowchart of the
+  server topology. Stdio servers render as rectangles, url servers
+  as rounded rects, disabled servers dimmed with dashed stroke.
+  Drop into a README in one cp-paste.
+- **2 more secret providers** — Pinecone API keys (UUID-shaped,
+  context-scoped), Supabase personal access tokens (`sbp_…`).
 - **CLI filter flags** — `--exclude-rule <id>` (repeatable),
   `--only-rule <id>` (repeatable), and `--only-fixable` drop matching
   issues before formatting and exit-code evaluation. Lets CI pipelines

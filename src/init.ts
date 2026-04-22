@@ -54,7 +54,8 @@ const DEFAULT_CONFIG = `{
     "duplicateEnvKey":       { "enabled": true,  "severity": "warning" },
     "shellMetachars":        { "enabled": true,  "severity": "error"   },
     "typosquatPackage":      { "enabled": true,  "severity": "error"   },
-    "emptyArgs":             { "enabled": true,  "severity": "warning" }
+    "emptyArgs":             { "enabled": true,  "severity": "warning" },
+    "placeholderValue":      { "enabled": true,  "severity": "error"   }
   }
 }
 `;

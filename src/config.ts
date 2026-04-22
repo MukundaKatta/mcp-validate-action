@@ -21,6 +21,7 @@ export const DEFAULT_CONFIG: Mcpcheckconfig = {
     shellMetachars: { enabled: true, severity: "error" },
     typosquatPackage: { enabled: true, severity: "error" },
     emptyArgs: { enabled: true, severity: "warning" },
+    placeholderValue: { enabled: true, severity: "error" },
   },
 };
 

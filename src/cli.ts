@@ -177,6 +177,14 @@ async function main(): Promise<void> {
     await handlePipe(process.argv.slice(3));
     return;
   }
+  if (process.argv[2] === "fmt") {
+    await handleFmt(process.argv.slice(3));
+    return;
+  }
+  if (process.argv[2] === "graph") {
+    await handleGraph(process.argv.slice(3));
+    return;
+  }
   if (process.argv[2] === "snapshot") {
     await handleSnapshot(process.argv.slice(3));
     return;
@@ -555,6 +563,83 @@ function applyRuleFilters(report: RunReport, opts: CliOptions): void {
       else if (i.severity === "info") report.infoCount += 1;
     }
   }
+}
+
+async function handleFmt(argv: string[]): Promise<void> {
+  const inPlace = argv.includes("--write") || argv.includes("-w");
+  const files = argv.filter((a) => !a.startsWith("-"));
+  if (files.length === 0 || argv.includes("-h") || argv.includes("--help")) {
+    process.stderr.write(
+      "Usage: mcpcheck fmt <file...> [--write]\n" +
+        "Pretty-print each MCP config (2-space indent, sorted server keys,\n" +
+        "newline at EOF). Without --write, prints to stdout.\n"
+    );
+    process.exit(files.length === 0 ? 2 : 0);
+  }
+  const { readFile, writeFile } = await import("node:fs/promises");
+  const { parseJsonc } = await import("./jsonc.js");
+  for (const file of files) {
+    const raw = await readFile(file, "utf8");
+    let parsed: unknown;
+    try {
+      parsed = parseJsonc(raw);
+    } catch (err) {
+      process.stderr.write(pc.red(`[fmt] ${file}: ${(err as Error).message}\n`));
+      continue;
+    }
+    const out = JSON.stringify(sortServerKeys(parsed), null, 2) + "\n";
+    if (inPlace) {
+      await writeFile(file, out, "utf8");
+      process.stderr.write(pc.green(`[fmt] ${file}\n`));
+    } else {
+      if (files.length > 1) process.stdout.write(`// ${file}\n`);
+      process.stdout.write(out);
+    }
+  }
+  process.exit(0);
+}
+
+function sortServerKeys(parsed: unknown): unknown {
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return parsed;
+  const c = parsed as Record<string, unknown>;
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(c)) {
+    if (k === "mcpServers" || k === "servers" || k === "context_servers") {
+      if (v && typeof v === "object" && !Array.isArray(v)) {
+        const sorted: Record<string, unknown> = {};
+        for (const serverName of Object.keys(v as Record<string, unknown>).sort()) {
+          sorted[serverName] = (v as Record<string, unknown>)[serverName];
+        }
+        out[k] = sorted;
+        continue;
+      }
+    }
+    out[k] = v;
+  }
+  return out;
+}
+
+async function handleGraph(argv: string[]): Promise<void> {
+  const files = argv.filter((a) => !a.startsWith("-"));
+  if (files.length === 0 || argv.includes("-h") || argv.includes("--help")) {
+    process.stderr.write(
+      "Usage: mcpcheck graph <file...>\n" +
+        "Emit a Mermaid flowchart diagram (LR) of the server topology.\n"
+    );
+    process.exit(files.length === 0 ? 2 : 0);
+  }
+  const { readFile } = await import("node:fs/promises");
+  const { formatGraph } = await import("./graph.js");
+  const entries: Array<{ file: string; source: string }> = [];
+  for (const file of files) {
+    try {
+      entries.push({ file, source: await readFile(file, "utf8") });
+    } catch (err) {
+      process.stderr.write(pc.yellow(`[graph] skip ${file}: ${(err as Error).message}\n`));
+    }
+  }
+  process.stdout.write(formatGraph(entries));
+  process.exit(0);
 }
 
 async function handlePipe(argv: string[]): Promise<void> {

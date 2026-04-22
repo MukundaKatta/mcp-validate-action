@@ -175,6 +175,16 @@ Plain-http local endpoints are handled separately by the \`invalid-url\` rule (h
 **Fix:** add a headers block with the substituted token, or disable the rule for this server if the endpoint really is open.`,
   },
   {
+    id: "placeholder-value",
+    title: "Env value is a copy-paste placeholder",
+    defaultSeverity: "error",
+    autofix: false,
+    summary: "An `env` value looks like template text (`YOUR_API_KEY_HERE`, `<token>`, `xxx…`, `replace-me`, `TODO`).",
+    details: `The config was probably pasted from a README and never completed. These values don't trigger \`hardcoded-secret\` (wrong format) and cause a confusing runtime failure at launch rather than at lint time.
+
+**Fix:** replace with the real value, or (usually what you want) \`\${VAR}\` substitution.`,
+  },
+  {
     id: "empty-args",
     title: "Package / container runner with empty args",
     defaultSeverity: "warning",
