@@ -7,6 +7,7 @@ import { urlRules } from "./url.js";
 import { unknownFieldRule } from "./unknown-field.js";
 import { unstableReferenceRule } from "./unstable-reference.js";
 import { dangerousCommandRule } from "./dangerous-command.js";
+import { httpWithoutAuthRule } from "./http-without-auth.js";
 
 export const BUILTIN_RULES: Rule[] = [
   structureRules,
@@ -17,4 +18,5 @@ export const BUILTIN_RULES: Rule[] = [
   unknownFieldRule,
   unstableReferenceRule,
   dangerousCommandRule,
+  httpWithoutAuthRule,
 ];

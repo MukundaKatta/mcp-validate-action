@@ -163,6 +163,18 @@ mcpcheck matches on format (prefix + length + charset), so the check runs offlin
 **Fix:** pin the exact version: \`npx -y @org/pkg@1.2.3\`, \`uvx pkg==1.2.3\`, \`docker run image:1.2.3\` (explicit tag, not \`:latest\` and not implicit).`,
   },
   {
+    id: "http-without-auth",
+    title: "HTTPS server without an Authorization header",
+    defaultSeverity: "warning",
+    autofix: false,
+    summary: "A URL-transport server targets an https endpoint but declares no `Authorization` header.",
+    details: `Most remote MCP servers require a bearer token or similar auth. A config with an https URL and no \`Authorization\` is almost always a missed env substitution — the user meant to add \`"headers": { "Authorization": "Bearer \${API_TOKEN}" }\` and forgot.
+
+Plain-http local endpoints are handled separately by the \`invalid-url\` rule (http to non-localhost is already flagged). Real public no-auth endpoints exist — mock servers, open-data servers — so this defaults to warning rather than error.
+
+**Fix:** add a headers block with the substituted token, or disable the rule for this server if the endpoint really is open.`,
+  },
+  {
     id: "dangerous-command",
     title: "Privilege escalation, remote-shell pipe, or host-root mount",
     defaultSeverity: "error",

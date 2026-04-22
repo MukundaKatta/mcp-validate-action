@@ -8,6 +8,23 @@ uses [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **LSP: Quick Fix + Hover** — the LSP server now advertises
+  `codeActionProvider` (quickfix + source.fixAll) and `hoverProvider`.
+  In any LSP-capable editor, overlap a secret diagnostic → Quick Fix
+  replaces the value with `${VAR}` just like the VS Code extension.
+  Multiple fixable issues in one file also surface a single
+  "fix all autofixable" source action. Hover over a squiggle → rule
+  docs render from the same source as `--explain` / docs/RULES.md.
+- **New rule: `http-without-auth`** (warning) — URL-transport server
+  targeting an https endpoint with no `Authorization` header. Real
+  remote MCP servers almost always need a bearer token; a config
+  shipping without one is usually a forgotten env substitution. Plain
+  http is still handled by `invalid-url`; this rule only looks at
+  https. 16 built-in rules now.
+- **Homebrew formula template** — `packaging/homebrew/mcpcheck.rb`
+  plus a README that walks through publishing a tap
+  (`brew tap MukundaKatta/mcpcheck && brew install mcpcheck`) once
+  the CLI is on npm. Bump procedure is three shell lines.
 - **`mcpcheck lsp`** — Language Server Protocol server on stdio.
   Neovim, Helix, Emacs (eglot), Zed, Sublime, Kate, and every other
   LSP-capable editor now gets mcpcheck diagnostics with no plugin.

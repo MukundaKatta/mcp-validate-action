@@ -125,6 +125,14 @@
             "enabled": true,
             "severity": "error"
           }
+        },
+        "httpWithoutAuth": {
+          "$ref": "#/$defs/RuleConfig",
+          "description": "HTTPS server without an Authorization header — A URL-transport server targets an https endpoint but declares no `Authorization` header.",
+          "default": {
+            "enabled": true,
+            "severity": "warning"
+          }
         }
       }
     },

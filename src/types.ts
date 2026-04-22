@@ -62,6 +62,7 @@ export interface RulesConfig {
   duplicateServerName: RuleConfig;
   unstableReference: RuleConfig;
   dangerousCommand: RuleConfig;
+  httpWithoutAuth: RuleConfig;
 }
 
 export interface Mcpcheckconfig {

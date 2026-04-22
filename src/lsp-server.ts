@@ -12,6 +12,7 @@
 
 import { checkSource } from "./core.js";
 import { locate } from "./locate.js";
+import { explainRule } from "./rule-docs.js";
 import type { Issue } from "./types.js";
 
 interface JsonRpcMessage {
@@ -79,6 +80,8 @@ async function handle(msg: JsonRpcMessage): Promise<void> {
             capabilities: {
               textDocumentSync: { openClose: true, change: 1, save: { includeText: true } },
               diagnosticProvider: { interFileDependencies: false, workspaceDiagnostics: false },
+              codeActionProvider: { codeActionKinds: ["quickfix", "source.fixAll"] },
+              hoverProvider: true,
             },
             serverInfo: { name: "mcpcheck-lsp", version: "1.0.0" },
           },
@@ -111,6 +114,67 @@ async function handle(msg: JsonRpcMessage): Promise<void> {
         const text = p["text"];
         if (typeof text === "string") openDocs.set(td.uri, text);
         publishDiagnostics(td.uri);
+        return;
+      }
+      case "textDocument/hover": {
+        const td = (p["textDocument"] ?? {}) as { uri: string };
+        const pos = p["position"] as { line: number; character: number };
+        const source = openDocs.get(td.uri);
+        if (!source) {
+          send({ jsonrpc: "2.0", id: id!, result: null });
+          return;
+        }
+        const offset = lspToOffset(source, pos);
+        const path = uriToPath(td.uri);
+        if (!MCP_FILENAME_RE.test(path)) {
+          send({ jsonrpc: "2.0", id: id!, result: null });
+          return;
+        }
+        const report = checkSource(source, path);
+        const at = report.issues.find((i) => offsetWithin(source, i, offset));
+        if (!at) {
+          send({ jsonrpc: "2.0", id: id!, result: null });
+          return;
+        }
+        const docs = explainRule(at.ruleId) ?? at.message;
+        send({
+          jsonrpc: "2.0",
+          id: id!,
+          result: {
+            contents: { kind: "markdown", value: "```\n" + docs + "\n```" },
+            range: rangeFor(source, at),
+          },
+        });
+        return;
+      }
+      case "textDocument/codeAction": {
+        const td = (p["textDocument"] ?? {}) as { uri: string };
+        const source = openDocs.get(td.uri);
+        if (!source) {
+          send({ jsonrpc: "2.0", id: id!, result: [] });
+          return;
+        }
+        const path = uriToPath(td.uri);
+        if (!MCP_FILENAME_RE.test(path)) {
+          send({ jsonrpc: "2.0", id: id!, result: [] });
+          return;
+        }
+        const report = checkSource(source, path);
+        const range = (p["range"] ?? {}) as { start: { line: number; character: number }; end: { line: number; character: number } };
+        const rangeStart = lspToOffset(source, range.start);
+        const rangeEnd = lspToOffset(source, range.end);
+        const overlapping = report.issues.filter((i) => i.fix && issueOverlaps(i, rangeStart, rangeEnd));
+        const actions = overlapping.map((i) => toCodeAction(td.uri, source, i));
+        // Add a source.fixAll when multiple fixable issues are present in the document.
+        const allFixable = report.issues.filter((i) => i.fix);
+        if (allFixable.length > 1) {
+          actions.push({
+            title: `mcpcheck: fix all ${allFixable.length} autofixable issue(s)`,
+            kind: "source.fixAll",
+            edit: buildWorkspaceEdit(td.uri, source, allFixable),
+          });
+        }
+        send({ jsonrpc: "2.0", id: id!, result: actions });
         return;
       }
       case "textDocument/didClose": {
@@ -194,6 +258,55 @@ function rangeFor(source: string, issue: Issue): unknown {
   }
   const line = Math.max(0, (issue.line ?? 1) - 1);
   return { start: { line, character: 0 }, end: { line: line + 1, character: 0 } };
+}
+
+function lspToOffset(source: string, pos: { line: number; character: number }): number {
+  let line = 0;
+  let i = 0;
+  while (i < source.length && line < pos.line) {
+    if (source[i] === "\n") line += 1;
+    i += 1;
+  }
+  return Math.min(source.length, i + pos.character);
+}
+
+function offsetWithin(source: string, issue: Issue, offset: number): boolean {
+  if (issue.fix) return offset >= issue.fix.start && offset <= issue.fix.end;
+  if (issue.jsonPath) {
+    const loc = locate(source, issue.jsonPath);
+    if (loc) return offset >= loc.startOffset && offset <= loc.endOffset;
+  }
+  return false;
+}
+
+function issueOverlaps(issue: Issue, start: number, end: number): boolean {
+  if (!issue.fix) return false;
+  return issue.fix.start <= end && issue.fix.end >= start;
+}
+
+function toCodeAction(uri: string, source: string, issue: Issue): unknown {
+  return {
+    title: issue.fix!.description,
+    kind: "quickfix",
+    isPreferred: true,
+    edit: buildWorkspaceEdit(uri, source, [issue]),
+  };
+}
+
+function buildWorkspaceEdit(uri: string, source: string, issues: Issue[]): unknown {
+  return {
+    changes: {
+      [uri]: issues
+        .filter((i) => i.fix)
+        .map((i) => ({
+          range: {
+            start: offsetToLsp(source, i.fix!.start),
+            end: offsetToLsp(source, i.fix!.end),
+          },
+          newText: i.fix!.replacement,
+        })),
+    },
+  };
 }
 
 function offsetToLsp(source: string, offset: number): { line: number; character: number } {

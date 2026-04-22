@@ -2,7 +2,10 @@
   "servers": {
     "github": {
       "url": "https://api.githubcopilot.com/mcp/",
-      "transport": "streamable-http"
+      "transport": "streamable-http",
+      "headers": {
+        "Authorization": "Bearer ${GITHUB_TOKEN}"
+      }
     }
   }
 }

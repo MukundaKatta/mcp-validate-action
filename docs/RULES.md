@@ -28,6 +28,7 @@ This page is generated from `src/rule-docs.ts`. Don't edit it by hand.
 | [`empty-servers`](#empty-servers) | warning | no | No `mcpServers` / `servers` / `context_servers` key, or it is empty. |
 | [`duplicate-server-name`](#duplicate-server-name) | error | no | Two server entries differ only by case. |
 | [`unstable-reference`](#unstable-reference) | warning | no | `npx <pkg>` / `uvx <pkg>` / `docker run <image>` without a pinned version. |
+| [`http-without-auth`](#http-without-auth) | warning | no | A URL-transport server targets an https endpoint but declares no `Authorization` header. |
 | [`dangerous-command`](#dangerous-command) | error | no | Config instructs the client to execute `curl \| sh`, `sudo`, `docker --privileged`, `-v /:/`, or similar. |
 
 ## invalid-json
@@ -213,6 +214,21 @@ Server names appear in prompts and logs; if you have `"GitHub"` and `"github"` y
 Most MCP servers are distributed via `npx`, `uvx`, or `docker`. Running them unpinned means you get whatever the registry says is latest on every launch, which is how configs that worked yesterday start failing tomorrow (and how supply-chain attacks get delivered).
 
 **Fix:** pin the exact version: `npx -y @org/pkg@1.2.3`, `uvx pkg==1.2.3`, `docker run image:1.2.3` (explicit tag, not `:latest` and not implicit).
+
+## http-without-auth
+
+**HTTPS server without an Authorization header**
+
+- Default severity: `warning`
+- Autofix: no
+
+A URL-transport server targets an https endpoint but declares no `Authorization` header.
+
+Most remote MCP servers require a bearer token or similar auth. A config with an https URL and no `Authorization` is almost always a missed env substitution — the user meant to add `"headers": { "Authorization": "Bearer ${API_TOKEN}" }` and forgot.
+
+Plain-http local endpoints are handled separately by the `invalid-url` rule (http to non-localhost is already flagged). Real public no-auth endpoints exist — mock servers, open-data servers — so this defaults to warning rather than error.
+
+**Fix:** add a headers block with the substituted token, or disable the rule for this server if the endpoint really is open.
 
 ## dangerous-command
 
