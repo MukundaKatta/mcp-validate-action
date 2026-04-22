@@ -17,6 +17,7 @@ export const DEFAULT_CONFIG: Mcpcheckconfig = {
     unstableReference: { enabled: true, severity: "warning" },
     dangerousCommand: { enabled: true, severity: "error" },
     httpWithoutAuth: { enabled: true, severity: "warning" },
+    duplicateEnvKey: { enabled: true, severity: "warning" },
   },
 };
 

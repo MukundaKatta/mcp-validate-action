@@ -25,7 +25,7 @@ import { homedir } from "node:os";
 import { readFile, writeFile } from "node:fs/promises";
 import { checkSource } from "./core.js";
 import { applyFixes } from "./fix.js";
-import { explainRule, listRuleIds } from "./rule-docs.js";
+import { explainRule, listRuleIds, RULE_DOCS } from "./rule-docs.js";
 import { statsFromSource } from "./stats.js";
 
 const PROTOCOL_VERSION = "2024-11-05";
@@ -112,7 +112,7 @@ async function dispatch(msg: JsonRpcRequest, tools: Tool[]): Promise<unknown> {
     case "initialize":
       return {
         protocolVersion: PROTOCOL_VERSION,
-        capabilities: { tools: {}, prompts: {} },
+        capabilities: { tools: {}, prompts: {}, resources: {} },
         serverInfo: { name: SERVER_NAME, version: SERVER_VERSION },
       };
     case "notifications/initialized":
@@ -164,6 +164,29 @@ async function dispatch(msg: JsonRpcRequest, tools: Tool[]): Promise<unknown> {
       const name = String(params["name"] ?? "");
       const args = (params["arguments"] ?? {}) as Record<string, unknown>;
       return promptFor(name, args);
+    }
+    case "resources/list":
+      return {
+        resources: RULE_DOCS.map((d) => ({
+          uri: `mcpcheck://rules/${d.id}`,
+          name: `Rule: ${d.id}`,
+          description: d.title,
+          mimeType: "text/markdown",
+        })),
+      };
+    case "resources/read": {
+      const uri = String(params["uri"] ?? "");
+      const match = /^mcpcheck:\/\/rules\/(.+)$/.exec(uri);
+      if (!match) {
+        throw Object.assign(new Error(`Unknown resource URI "${uri}"`), { code: -32602 });
+      }
+      const text = explainRule(match[1]!);
+      if (!text) {
+        throw Object.assign(new Error(`Unknown rule "${match[1]!}"`), { code: -32602 });
+      }
+      return {
+        contents: [{ uri, mimeType: "text/markdown", text }],
+      };
     }
     case "ping":
       return {};

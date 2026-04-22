@@ -29,6 +29,7 @@ This page is generated from `src/rule-docs.ts`. Don't edit it by hand.
 | [`duplicate-server-name`](#duplicate-server-name) | error | no | Two server entries differ only by case. |
 | [`unstable-reference`](#unstable-reference) | warning | no | `npx <pkg>` / `uvx <pkg>` / `docker run <image>` without a pinned version. |
 | [`http-without-auth`](#http-without-auth) | warning | no | A URL-transport server targets an https endpoint but declares no `Authorization` header. |
+| [`duplicate-env-key`](#duplicate-env-key) | warning | no | Two entries in `env` differ only by case (e.g. `API_KEY` and `ApiKey`). |
 | [`dangerous-command`](#dangerous-command) | error | no | Config instructs the client to execute `curl \| sh`, `sudo`, `docker --privileged`, `-v /:/`, or similar. |
 
 ## invalid-json
@@ -229,6 +230,19 @@ Most remote MCP servers require a bearer token or similar auth. A config with an
 Plain-http local endpoints are handled separately by the `invalid-url` rule (http to non-localhost is already flagged). Real public no-auth endpoints exist — mock servers, open-data servers — so this defaults to warning rather than error.
 
 **Fix:** add a headers block with the substituted token, or disable the rule for this server if the endpoint really is open.
+
+## duplicate-env-key
+
+**Case-colliding env var names on a server**
+
+- Default severity: `warning`
+- Autofix: no
+
+Two entries in `env` differ only by case (e.g. `API_KEY` and `ApiKey`).
+
+POSIX env vars are case-sensitive at the OS level, so the MCP client hands both variables to the subprocess. Whichever one the subprocess actually reads wins; the other is silently ignored. That's almost always a typo or a copy-paste leftover.
+
+**Fix:** delete whichever entry is the mistake.
 
 ## dangerous-command
 

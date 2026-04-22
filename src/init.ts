@@ -50,7 +50,8 @@ const DEFAULT_CONFIG = `{
     "duplicateServerName":   { "enabled": true,  "severity": "error"   },
     "unstableReference":     { "enabled": true,  "severity": "warning" },
     "dangerousCommand":      { "enabled": true,  "severity": "error"   },
-    "httpWithoutAuth":       { "enabled": true,  "severity": "warning" }
+    "httpWithoutAuth":       { "enabled": true,  "severity": "warning" },
+    "duplicateEnvKey":       { "enabled": true,  "severity": "warning" }
   }
 }
 `;

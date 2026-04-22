@@ -175,6 +175,16 @@ Plain-http local endpoints are handled separately by the \`invalid-url\` rule (h
 **Fix:** add a headers block with the substituted token, or disable the rule for this server if the endpoint really is open.`,
   },
   {
+    id: "duplicate-env-key",
+    title: "Case-colliding env var names on a server",
+    defaultSeverity: "warning",
+    autofix: false,
+    summary: "Two entries in `env` differ only by case (e.g. `API_KEY` and `ApiKey`).",
+    details: `POSIX env vars are case-sensitive at the OS level, so the MCP client hands both variables to the subprocess. Whichever one the subprocess actually reads wins; the other is silently ignored. That's almost always a typo or a copy-paste leftover.
+
+**Fix:** delete whichever entry is the mistake.`,
+  },
+  {
     id: "dangerous-command",
     title: "Privilege escalation, remote-shell pipe, or host-root mount",
     defaultSeverity: "error",

@@ -133,6 +133,14 @@
             "enabled": true,
             "severity": "warning"
           }
+        },
+        "duplicateEnvKey": {
+          "$ref": "#/$defs/RuleConfig",
+          "description": "Case-colliding env var names on a server — Two entries in `env` differ only by case (e.g. `API_KEY` and `ApiKey`).",
+          "default": {
+            "enabled": true,
+            "severity": "warning"
+          }
         }
       }
     },

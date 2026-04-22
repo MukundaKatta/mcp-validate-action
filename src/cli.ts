@@ -68,6 +68,7 @@ interface CliOptions {
   watch: boolean;
   profile?: string;
   printConfig: boolean;
+  diffOnly?: string;
 }
 
 const DEFAULT_BASELINE_PATH = ".mcpcheck.baseline.json";
@@ -241,6 +242,10 @@ async function main(): Promise<void> {
       "print the effective merged mcpcheck config (defaults + profile + --config) and exit",
       false
     )
+    .option(
+      "--diff-only [base]",
+      "lint only files changed vs base (default: HEAD). Uses `git diff --name-only`."
+    )
     .version(readVersion(), "-v, --version")
     .addHelpText(
       "after",
@@ -333,7 +338,28 @@ async function main(): Promise<void> {
 
   const expanded = await expandInputs(rawInputs);
   const ignore = await loadIgnoreRules();
-  const files = ignore ? filterIgnored(expanded, ignore) : expanded;
+  let files = ignore ? filterIgnored(expanded, ignore) : expanded;
+  if (opts.diffOnly !== undefined) {
+    const base =
+      typeof opts.diffOnly === "string" && opts.diffOnly !== "" ? opts.diffOnly : "HEAD";
+    const changed = await gitChangedFiles(base);
+    if (changed === undefined) {
+      process.stderr.write(
+        pc.yellow(
+          `[--diff-only] not a git repo or git unavailable; running against every matched file instead.\n`
+        )
+      );
+    } else {
+      const changedSet = new Set(changed);
+      const filtered = files.filter((f) => changedSet.has(trimCwd(f)));
+      process.stderr.write(
+        pc.dim(
+          `[--diff-only] ${filtered.length}/${files.length} input(s) changed vs ${base}\n`
+        )
+      );
+      files = filtered;
+    }
+  }
   if (files.length === 0) {
     process.stderr.write(pc.yellow("No MCP config files matched. Nothing to do.\n"));
     process.exit(0);
@@ -790,6 +816,28 @@ async function loadPluginRules(config: Mcpcheckconfig): Promise<Rule[]> {
 
 async function loadIgnoreRules(): Promise<Awaited<ReturnType<typeof loadIgnoreFile>>> {
   return loadIgnoreFile(".mcpcheckignore");
+}
+
+/**
+ * Return the list of paths (relative to the git repo root) that differ
+ * between the working tree and `base`. `undefined` if this isn't a git
+ * repository or `git` isn't available — callers should fall back to
+ * running against every input in that case.
+ */
+async function gitChangedFiles(base: string): Promise<string[] | undefined> {
+  const { spawnSync } = await import("node:child_process");
+  const res = spawnSync("git", ["diff", "--name-only", base], { encoding: "utf8" });
+  if (res.status !== 0) return undefined;
+  return res.stdout
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+}
+
+function trimCwd(p: string): string {
+  const cwd = process.cwd();
+  if (p.startsWith(cwd + "/")) return p.slice(cwd.length + 1);
+  return p;
 }
 
 async function expandInputs(inputs: string[]): Promise<string[]> {

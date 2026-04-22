@@ -8,6 +8,20 @@ uses [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **MCP server: `resources/list` + `resources/read`** — the recursive
+  MCP server now exposes every built-in rule as a resource under
+  `mcpcheck://rules/<id>` with `mimeType: text/markdown`. Clients
+  that show an MCP resource browser can list / preview rule docs
+  without having to invoke a tool. Initialize advertises
+  `resources: {}` in capabilities.
+- **`mcpcheck --diff-only [base]`** — restricts the scan to files
+  changed vs `base` (default `HEAD`, using `git diff --name-only`).
+  No-op with a clear warning if the cwd isn't a git repo. Drops
+  PR-review workflows to linting only what the PR actually touched.
+- **New rule: `duplicate-env-key`** (warning) — two env var names
+  that differ only by case (`API_KEY` vs `ApiKey`). Both get handed
+  to the subprocess; only one is read; that's almost always a
+  typo. 17 built-in rules now.
 - **MCP server: `prompts/list` + `prompts/get`** — the recursive MCP
   server now advertises three prompts in addition to its tools:
   `lint_my_config`, `fix_my_config` (walks through autofixes with a
