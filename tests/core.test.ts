@@ -385,6 +385,36 @@ describe("init config file parses as our own --config", async () => {
   });
 });
 
+describe("schema/mcp-config.schema.json", () => {
+  it("Server properties match KNOWN_SERVER_FIELDS (schema and code can't drift)", async () => {
+    const { readFile } = await import("node:fs/promises");
+    const { fileURLToPath } = await import("node:url");
+    const { dirname, resolve } = await import("node:path");
+    const { KNOWN_SERVER_FIELDS } = await import("../src/rules/constants.js");
+
+    const here = dirname(fileURLToPath(import.meta.url));
+    const schema = JSON.parse(
+      await readFile(resolve(here, "..", "schema", "mcp-config.schema.json"), "utf8")
+    ) as { $defs: { Server: { properties: Record<string, unknown> } } };
+
+    const schemaProps = new Set(Object.keys(schema.$defs.Server.properties));
+    const codeProps = KNOWN_SERVER_FIELDS;
+
+    for (const p of schemaProps) {
+      assert.ok(
+        codeProps.has(p),
+        `schema lists field "${p}" that KNOWN_SERVER_FIELDS doesn't — drift (check src/rules/constants.ts)`
+      );
+    }
+    for (const p of codeProps) {
+      assert.ok(
+        schemaProps.has(p),
+        `KNOWN_SERVER_FIELDS has "${p}" but schema/mcp-config.schema.json doesn't — drift (hand-edit schema or remove from code)`
+      );
+    }
+  });
+});
+
 describe("schema.json", () => {
   it("rule keys match DEFAULT_CONFIG.rules (generator can't drift)", async () => {
     const { readFile } = await import("node:fs/promises");

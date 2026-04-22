@@ -8,6 +8,23 @@ uses [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **JSON Schema for MCP config files themselves** —
+  `schema/mcp-config.schema.json` describes the shape of `mcp.json`,
+  `.mcp.json`, `claude_desktop_config.json`, `cline_mcp_settings.json`,
+  `.cursor/mcp.json`, `.codeium/windsurf/mcp_config.json`, `.claude/mcp.json`,
+  and Zed's `context_servers`. The VS Code extension registers it via
+  `jsonValidation` so users editing any of those files get autocomplete
+  and inline errors (e.g. unknown `command`/`args`/`env`/`transport`
+  typos). Playground dist mirrors it at `/mcp-config.schema.json`. A
+  test pins that the schema's server properties exactly match
+  `KNOWN_SERVER_FIELDS` in `src/rules/constants.ts`, so the two can't
+  drift.
+- **Benchmark script** — `npm run bench` times `checkSource` over 2000
+  iterations (after warmup) and reports avg / p50 / p95 / p99. Median
+  ~42µs per config on a mid-sized Mac.
+- **Plugin end-to-end test** — the enterprise plugin's test suite now
+  runs `checkSource` with plugin rules as `extraRules` and asserts both
+  plugin and core built-in rules fire on the same config (12 pass).
 - **Policy-as-code plugin** — `extensions/enterprise-plugin/` ships
   `@mcpcheck/enterprise`, a plugin loadable via `config.plugins` that
   adds three rules: `enterprise/allowed-command`, `enterprise/denied-image`,

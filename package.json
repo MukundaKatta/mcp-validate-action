@@ -27,6 +27,7 @@
     "docs:check": "node scripts/gen-rules-md.mjs && git diff --exit-code -- docs/RULES.md",
     "schema:gen": "node scripts/gen-schema.mjs",
     "schema:check": "node scripts/gen-schema.mjs && git diff --exit-code -- schema.json",
+    "bench": "node scripts/bench.mjs",
     "prepublishOnly": "npm run build && npm test && npm run docs:check && npm run schema:check"
   },
   "keywords": [
@@ -70,6 +71,7 @@
     "dist",
     "action.yml",
     "schema.json",
+    "schema",
     "README.md",
     "CHANGELOG.md",
     "LICENSE"

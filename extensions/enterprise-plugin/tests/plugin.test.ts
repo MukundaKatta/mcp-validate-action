@@ -116,3 +116,37 @@ describe("empty config", () => {
     assert.equal(rules.length, 0);
   });
 });
+
+describe("end-to-end via checkSource", () => {
+  it("plugin rules run alongside built-ins when passed as extraRules", async () => {
+    const { checkSource } = await import("mcpcheck");
+    const rules = buildRules({
+      allowedCommands: ["npx", "uvx"],
+      allowedPackages: ["@modelcontextprotocol/*"],
+    });
+
+    // A config that trips both the plugin AND a core rule:
+    //   - command "docker" is not in allowedCommands → enterprise/allowed-command
+    //   - OPENAI key is a real-looking hardcoded token → hardcoded-secret (core)
+    const config = `{
+      "mcpServers": {
+        "evil": {
+          "command": "docker",
+          "args": ["run", "img:1.0.0"],
+          "env": { "OPENAI_API_KEY": "sk-proj-hardcodedVALUE1234567890abcdef" }
+        }
+      }
+    }`;
+
+    const report = checkSource(config, "mcp.json", { extraRules: rules });
+    const ids = new Set(report.issues.map((i) => i.ruleId));
+    assert.ok(
+      ids.has("enterprise/allowed-command"),
+      "plugin rule should fire on command outside allowlist"
+    );
+    assert.ok(
+      ids.has("hardcoded-secret"),
+      "core built-in should still run when plugin rules are present"
+    );
+  });
+});

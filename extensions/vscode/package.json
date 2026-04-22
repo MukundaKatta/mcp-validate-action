@@ -50,7 +50,15 @@
       {
         "fileMatch": ".mcpcheck.json",
         "url": "./schema/mcpcheck.schema.json"
-      }
+      },
+      { "fileMatch": "mcp.json",                    "url": "./schema/mcp-config.schema.json" },
+      { "fileMatch": ".mcp.json",                   "url": "./schema/mcp-config.schema.json" },
+      { "fileMatch": "claude_desktop_config.json",  "url": "./schema/mcp-config.schema.json" },
+      { "fileMatch": "cline_mcp_settings.json",     "url": "./schema/mcp-config.schema.json" },
+      { "fileMatch": ".cursor/mcp.json",            "url": "./schema/mcp-config.schema.json" },
+      { "fileMatch": ".codeium/windsurf/mcp_config.json", "url": "./schema/mcp-config.schema.json" },
+      { "fileMatch": ".claude/mcp.json",            "url": "./schema/mcp-config.schema.json" },
+      { "fileMatch": ".claude.json",                "url": "./schema/mcp-config.schema.json" }
     ],
     "configuration": {
       "title": "mcpcheck",
@@ -86,7 +94,7 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run build",
-    "prebuild": "node -e \"require('node:fs').mkdirSync('schema',{recursive:true});require('node:fs').copyFileSync('../../schema.json','schema/mcpcheck.schema.json');\"",
+    "prebuild": "node -e \"const fs=require('node:fs');fs.mkdirSync('schema',{recursive:true});fs.copyFileSync('../../schema.json','schema/mcpcheck.schema.json');fs.copyFileSync('../../schema/mcp-config.schema.json','schema/mcp-config.schema.json');\"",
     "build": "node esbuild.mjs",
     "watch": "node esbuild.mjs --watch",
     "lint": "tsc --noEmit",

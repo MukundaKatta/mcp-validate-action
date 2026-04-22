@@ -22,3 +22,12 @@ All notable changes to the mcpcheck VS Code extension.
 - JSON Schema for `mcpcheck.config.json` and `.mcpcheck.json` is
   contributed via `jsonValidation`, giving autocomplete, inline errors,
   and rule descriptions while editing the config.
+- JSON Schema for **MCP config files themselves** (mcp.json,
+  claude_desktop_config.json, cline_mcp_settings.json, .cursor/mcp.json,
+  .codeium/windsurf/mcp_config.json, .claude/mcp.json, .claude.json) is
+  now registered. Editing any of those files gives autocomplete for
+  `command`/`args`/`env`/`transport`/`url`, inline errors on unknown
+  fields, and hover descriptions.
+- "Explain rule..." with no argument now reads the diagnostic under the
+  cursor and opens its docs. Falls back to the quickpick only when the
+  cursor isn't on an mcpcheck finding.

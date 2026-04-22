@@ -137,11 +137,12 @@ jobs:
       - name: Package VSIX
         run: npx --yes @vscode/vsce@^3 package --no-dependencies --no-git-tag-version
 
-      - name: VSIX contains extension.cjs and bundled JSON schema
+      - name: VSIX contains extension.cjs and bundled JSON schemas
         run: |
           VSIX=$(ls *.vsix | head -1)
           unzip -l "$VSIX" | grep -q 'extension/out/extension.cjs'
           unzip -l "$VSIX" | grep -q 'extension/schema/mcpcheck.schema.json'
+          unzip -l "$VSIX" | grep -q 'extension/schema/mcp-config.schema.json'
 
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v4
@@ -186,8 +187,10 @@ jobs:
             fi
           done
 
-      - name: schema.json is served by the playground
-        run: test -f dist/schema.json
+      - name: both JSON schemas served by the playground
+        run: |
+          test -f dist/schema.json
+          test -f dist/mcp-config.schema.json
 
       - name: Upload playground artifact
         uses: actions/upload-artifact@v4

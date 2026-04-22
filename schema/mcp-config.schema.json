@@ -1,0 +1,95 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/MukundaKatta/mcpcheck/main/schema/mcp-config.schema.json",
+  "title": "MCP client configuration",
+  "description": "Unofficial JSON Schema for MCP (Model Context Protocol) client config files: mcp.json, claude_desktop_config.json, cline_mcp_settings.json, .cursor/mcp.json, .codeium/windsurf/mcp_config.json. Maintained by mcpcheck — https://github.com/MukundaKatta/mcpcheck",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "mcpServers": {
+      "type": "object",
+      "description": "Claude Desktop / Claude Code / Cursor / Cline / Windsurf server map. Keys are server names; values describe how the client should reach each server.",
+      "additionalProperties": { "$ref": "#/$defs/Server" }
+    },
+    "servers": {
+      "type": "object",
+      "description": "Alternate server map key used by some VS Code-style configs.",
+      "additionalProperties": { "$ref": "#/$defs/Server" }
+    },
+    "context_servers": {
+      "type": "object",
+      "description": "Zed's key for MCP servers inside settings.json.",
+      "additionalProperties": { "$ref": "#/$defs/Server" }
+    }
+  },
+  "$defs": {
+    "Server": {
+      "type": "object",
+      "description": "Single MCP server entry. Must have either `command` (stdio transport) or `url` (http/sse/streamable-http).",
+      "additionalProperties": false,
+      "properties": {
+        "command": {
+          "type": "string",
+          "description": "Absolute path or PATH-resolvable binary launched as a child process (stdio transport)."
+        },
+        "args": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Arguments passed to `command`."
+        },
+        "env": {
+          "type": "object",
+          "description": "Environment variables passed to the child. Values must be strings. Use ${VAR} to substitute from the parent shell.",
+          "additionalProperties": { "type": "string" }
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "HTTP/SSE endpoint for remote MCP servers."
+        },
+        "transport": {
+          "enum": ["stdio", "sse", "streamable-http"],
+          "description": "Explicit transport. Usually inferred from `command` (stdio) or `url` (sse/streamable-http)."
+        },
+        "type": {
+          "description": "Cursor/Windsurf alternative key for `transport`.",
+          "type": "string"
+        },
+        "cwd": {
+          "type": "string",
+          "description": "Working directory for the spawned process."
+        },
+        "headers": {
+          "type": "object",
+          "description": "HTTP headers to include on requests to a URL-based server."
+        },
+        "disabled": {
+          "type": "boolean",
+          "description": "If true, the client skips this server."
+        },
+        "autoApprove": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Tool names that should not require user confirmation."
+        },
+        "alwaysAllow": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Tool names that should always be allowed (Cline)."
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional human-readable description of this server."
+        },
+        "icon": {
+          "type": "string",
+          "description": "Optional icon (data URI, path, or emoji) for clients that render one."
+        },
+        "name": {
+          "type": "string",
+          "description": "Optional display name override; defaults to the map key."
+        }
+      }
+    }
+  }
+}
