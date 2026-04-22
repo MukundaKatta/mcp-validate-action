@@ -141,6 +141,14 @@
             "enabled": true,
             "severity": "warning"
           }
+        },
+        "shellMetachars": {
+          "$ref": "#/$defs/RuleConfig",
+          "description": "Shell metacharacters without a shell — `command` contains `|`, `;`, `$(…)`, backticks, `&&`, `||`, `&`, or `$VAR` but isn't a shell.",
+          "default": {
+            "enabled": true,
+            "severity": "error"
+          }
         }
       }
     },

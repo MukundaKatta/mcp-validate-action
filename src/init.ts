@@ -51,7 +51,8 @@ const DEFAULT_CONFIG = `{
     "unstableReference":     { "enabled": true,  "severity": "warning" },
     "dangerousCommand":      { "enabled": true,  "severity": "error"   },
     "httpWithoutAuth":       { "enabled": true,  "severity": "warning" },
-    "duplicateEnvKey":       { "enabled": true,  "severity": "warning" }
+    "duplicateEnvKey":       { "enabled": true,  "severity": "warning" },
+    "shellMetachars":        { "enabled": true,  "severity": "error"   }
   }
 }
 `;

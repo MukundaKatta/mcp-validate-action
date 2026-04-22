@@ -175,6 +175,18 @@ Plain-http local endpoints are handled separately by the \`invalid-url\` rule (h
 **Fix:** add a headers block with the substituted token, or disable the rule for this server if the endpoint really is open.`,
   },
   {
+    id: "shell-metachars",
+    title: "Shell metacharacters without a shell",
+    defaultSeverity: "error",
+    autofix: false,
+    summary: "`command` contains `|`, `;`, `$(…)`, backticks, `&&`, `||`, `&`, or `$VAR` but isn't a shell.",
+    details: `MCP clients hand \`command + args\` straight to the OS process launcher — they do not invoke a shell. So \`"command": "curl foo | sh"\` runs \`curl\` with \`foo\`, \`|\`, and \`sh\` as literal argv. The pipe is a harmless string as far as curl is concerned, and the user's actual intent never happens.
+
+If you need a shell pipeline, wrap the whole thing in \`bash -c "…"\` (and then expect \`dangerous-command\` to look at it hard).
+
+**Fix:** either remove the shell metacharacters, or change \`command\` to \`bash\` / \`sh\` and put the pipeline in \`args[1]\` after \`-c\`.`,
+  },
+  {
     id: "duplicate-env-key",
     title: "Case-colliding env var names on a server",
     defaultSeverity: "warning",

@@ -8,6 +8,24 @@ uses [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Expanded `unstable-reference` mutable-tag detection.** In addition
+  to `:latest` and missing-tag, the rule now flags `:beta`, `:dev`,
+  `:develop`, `:nightly`, `:canary`, `:edge`, `:snapshot`, `:main`,
+  `:master`, and `:rc[-.]*` Docker tags. Tag detection is scoped
+  past the registry-port colon (so `registry:5000/img:1.0` is still
+  read correctly).
+- **New rule: `shell-metachars`** (error) — `command` contains
+  `|`, `;`, `$(…)`, backticks, `&&`/`||`, `&`, or `$VAR` but isn't
+  itself a shell (bash/sh/zsh/fish/ksh/dash/pwsh/powershell/cmd).
+  MCP clients don't invoke a shell, so the metacharacters are
+  passed as literal argv and the pipeline never runs. 18 built-in
+  rules.
+- **`--format html`** — self-contained single-file HTML report
+  with inline CSS, rule-id anchor links to docs/RULES.md, and dark-
+  mode support. Ideal for CI artifact uploads.
+- **3 more secret providers** — OpenAI session tokens (`sess-`),
+  Cohere API keys (context-scoped to `COHERE`), AI21 Labs keys
+  (context-scoped to `AI21`).
 - **MCP server: `resources/list` + `resources/read`** — the recursive
   MCP server now exposes every built-in rule as a resource under
   `mcpcheck://rules/<id>` with `mimeType: text/markdown`. Clients

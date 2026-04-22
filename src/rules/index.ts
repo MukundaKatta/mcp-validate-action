@@ -9,6 +9,7 @@ import { unstableReferenceRule } from "./unstable-reference.js";
 import { dangerousCommandRule } from "./dangerous-command.js";
 import { httpWithoutAuthRule } from "./http-without-auth.js";
 import { duplicateEnvKeyRule } from "./duplicate-env-key.js";
+import { shellMetacharsRule } from "./shell-metachars.js";
 
 export const BUILTIN_RULES: Rule[] = [
   structureRules,
@@ -21,4 +22,5 @@ export const BUILTIN_RULES: Rule[] = [
   dangerousCommandRule,
   httpWithoutAuthRule,
   duplicateEnvKeyRule,
+  shellMetacharsRule,
 ];

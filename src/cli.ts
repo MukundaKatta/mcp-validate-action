@@ -27,6 +27,7 @@ import { formatSarif } from "./formatters/sarif.js";
 import { formatGithub } from "./formatters/github.js";
 import { formatMarkdown } from "./formatters/markdown.js";
 import { formatJunit } from "./formatters/junit.js";
+import { formatHtml } from "./formatters/html.js";
 import { explainRule, listRuleIds } from "./rule-docs.js";
 import { runInit } from "./init.js";
 import { diffFiles } from "./diff.js";
@@ -51,7 +52,7 @@ import {
 } from "./transform.js";
 import type { Mcpcheckconfig, Rule, RunReport, FileReport } from "./types.js";
 
-type Format = "text" | "json" | "sarif" | "github" | "markdown" | "junit";
+type Format = "text" | "json" | "sarif" | "github" | "markdown" | "junit" | "html";
 
 interface CliOptions {
   config?: string;
@@ -209,7 +210,7 @@ async function main(): Promise<void> {
     )
     .argument("[inputs...]", "file paths or globs (defaults to common MCP config locations)")
     .option("-c, --config <path>", "mcpcheck config file")
-    .option("-f, --format <type>", "text | json | sarif | github | markdown | junit", "text")
+    .option("-f, --format <type>", "text | json | sarif | github | markdown | junit | html", "text")
     .option("--fix", "apply autofixes in place", false)
     .option("--fail-on <level>", "exit nonzero threshold: error | warning | info | never", "error")
     .option("-o, --output <path>", "write formatted output to a file")
@@ -881,6 +882,8 @@ function renderReport(fmt: Format, report: ReturnType<typeof checkFiles> extends
       return formatMarkdown(report);
     case "junit":
       return formatJunit(report);
+    case "html":
+      return formatHtml(report);
     default:
       return formatText(report);
   }

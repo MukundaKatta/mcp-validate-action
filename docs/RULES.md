@@ -29,6 +29,7 @@ This page is generated from `src/rule-docs.ts`. Don't edit it by hand.
 | [`duplicate-server-name`](#duplicate-server-name) | error | no | Two server entries differ only by case. |
 | [`unstable-reference`](#unstable-reference) | warning | no | `npx <pkg>` / `uvx <pkg>` / `docker run <image>` without a pinned version. |
 | [`http-without-auth`](#http-without-auth) | warning | no | A URL-transport server targets an https endpoint but declares no `Authorization` header. |
+| [`shell-metachars`](#shell-metachars) | error | no | `command` contains `\|`, `;`, `$(…)`, backticks, `&&`, `\|\|`, `&`, or `$VAR` but isn't a shell. |
 | [`duplicate-env-key`](#duplicate-env-key) | warning | no | Two entries in `env` differ only by case (e.g. `API_KEY` and `ApiKey`). |
 | [`dangerous-command`](#dangerous-command) | error | no | Config instructs the client to execute `curl \| sh`, `sudo`, `docker --privileged`, `-v /:/`, or similar. |
 
@@ -230,6 +231,21 @@ Most remote MCP servers require a bearer token or similar auth. A config with an
 Plain-http local endpoints are handled separately by the `invalid-url` rule (http to non-localhost is already flagged). Real public no-auth endpoints exist — mock servers, open-data servers — so this defaults to warning rather than error.
 
 **Fix:** add a headers block with the substituted token, or disable the rule for this server if the endpoint really is open.
+
+## shell-metachars
+
+**Shell metacharacters without a shell**
+
+- Default severity: `error`
+- Autofix: no
+
+`command` contains `|`, `;`, `$(…)`, backticks, `&&`, `||`, `&`, or `$VAR` but isn't a shell.
+
+MCP clients hand `command + args` straight to the OS process launcher — they do not invoke a shell. So `"command": "curl foo | sh"` runs `curl` with `foo`, `|`, and `sh` as literal argv. The pipe is a harmless string as far as curl is concerned, and the user's actual intent never happens.
+
+If you need a shell pipeline, wrap the whole thing in `bash -c "…"` (and then expect `dangerous-command` to look at it hard).
+
+**Fix:** either remove the shell metacharacters, or change `command` to `bash` / `sh` and put the pipeline in `args[1]` after `-c`.
 
 ## duplicate-env-key
 

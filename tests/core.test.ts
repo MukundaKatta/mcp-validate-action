@@ -207,6 +207,9 @@ describe("checkSource - expanded secret providers", () => {
     ["SENTRY_DSN", "https://" + "a".repeat(32) + "@o1234.ingest.sentry.io/4567", "Sentry DSN"],
     ["ALIBABA_ACCESS_KEY_ID", "LTAI" + "a".repeat(18), "Alibaba Cloud AccessKey"],
     ["TENCENT_SECRET_ID", "AKID" + "a".repeat(32), "Tencent Cloud SecretId"],
+    ["OPENAI_SESSION_TOKEN", "sess-" + "a".repeat(44), "OpenAI session token"],
+    ["COHERE_API_KEY", "a".repeat(40), "Cohere API key"],
+    ["AI21_API_KEY", "a".repeat(40), "AI21 Labs API key"],
     // Synthetic value that matches the Discord regex (three dotted segments
     // of the right lengths) without looking like a real base64-encoded
     // snowflake id. We use uppercase placeholder runs so GitHub's secret

@@ -64,6 +64,7 @@ export interface RulesConfig {
   dangerousCommand: RuleConfig;
   httpWithoutAuth: RuleConfig;
   duplicateEnvKey: RuleConfig;
+  shellMetachars: RuleConfig;
 }
 
 export interface Mcpcheckconfig {

@@ -82,6 +82,22 @@ export const SECRET_PATTERNS: SecretPattern[] = [
   { name: "Alibaba Cloud AccessKey", re: /^LTAI[A-Za-z0-9]{16,20}$/, keyHint: /ALIBABA|ALIYUN|ALIBABACLOUD/i },
   // Tencent Cloud SecretId starts with AKID + 32 alnum.
   { name: "Tencent Cloud SecretId", re: /^AKID[A-Za-z0-9]{32}$/ },
+  // OpenAI session tokens used for user auth (different from API keys) —
+  // very recognizable `sess-` prefix that only appears on session values.
+  { name: "OpenAI session token", re: /^sess-[A-Za-z0-9]{40,}$/ },
+  // Cohere API keys are UUID-dash format scoped to a specific env hint.
+  {
+    name: "Cohere API key",
+    re: /^[A-Za-z0-9]{40}$/,
+    keyHint: /COHERE/i,
+  },
+  // AI21 keys are short alnum — high false-positive risk unsupervised, so
+  // strictly scoped to env names containing AI21.
+  {
+    name: "AI21 Labs API key",
+    re: /^[A-Za-z0-9]{32,}$/,
+    keyHint: /AI21/i,
+  },
   // Google Cloud service account keys are JSON blobs; people sometimes paste the
   // whole thing into a single env var value. Match on the private_key_id field,
   // which is always a 40-char hex string immediately preceded by that key name.

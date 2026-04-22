@@ -81,11 +81,30 @@ function detectUnstable(command: string, args: string[]): string | undefined {
   }
   if (command.endsWith("docker") || command === "docker") {
     const image = findDockerImage(args);
-    if (image && (image.endsWith(":latest") || !image.includes(":"))) {
+    if (image && isMutableImageTag(image)) {
       return `docker ${image}`;
     }
   }
   return undefined;
+}
+
+/**
+ * A docker image reference is "mutable" (floats) when it has no tag, has the
+ * literal `:latest`, or has one of the common moving tags:
+ *    beta, dev, develop, nightly, canary, edge, snapshot, main, master, rc-*
+ * Any of those re-points at a new digest on each pull.
+ */
+const MUTABLE_TAGS = /^(?:latest|beta|dev|develop|nightly|canary|edge|snapshot|main|master|rc(?:[-.][a-z0-9]+)?)$/i;
+
+function isMutableImageTag(image: string): boolean {
+  const colon = image.lastIndexOf(":");
+  // A repo like `registry:5000/foo` has a colon in the *host* portion; the
+  // tag only follows the last `/`. Scope the colon-search to the basename.
+  const slash = image.lastIndexOf("/");
+  const tagSeparator = colon > slash ? colon : -1;
+  if (tagSeparator < 0) return true; // no tag = floats
+  const tag = image.slice(tagSeparator + 1);
+  return MUTABLE_TAGS.test(tag);
 }
 
 /**
