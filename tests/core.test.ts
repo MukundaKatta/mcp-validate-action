@@ -188,6 +188,11 @@ describe("checkSource - expanded secret providers", () => {
     ["SENDGRID_KEY", "SG." + "a".repeat(22) + "." + "b".repeat(43), "SendGrid API key"],
     ["HF_TOKEN", "hf_" + "a".repeat(35), "Hugging Face token"],
     ["NPM_TOKEN", "npm_" + "a".repeat(36), "npm access token"],
+    ["MAILGUN_KEY", "key-" + "a".repeat(32), "Mailgun API key"],
+    ["REPLICATE_TOKEN", "r8_" + "a".repeat(40), "Replicate API token"],
+    ["PERPLEXITY_KEY", "pplx-" + "a".repeat(40), "Perplexity API key"],
+    ["GROQ_API_KEY", "gsk_" + "a".repeat(40), "Groq API key"],
+    ["XAI_KEY", "xai-" + "a".repeat(30), "xAI (Grok) API key"],
   ];
   for (const [envKey, value, label] of cases) {
     it(`flags ${label}`, () => {
@@ -288,6 +293,23 @@ describe("dangerous-command rule", () => {
       report.issues.filter((i) => i.ruleId === "dangerous-command").length,
       0
     );
+  });
+});
+
+describe("--client flag mappings", () => {
+  it("every known client produces a non-empty path list, unknown returns undefined", async () => {
+    const { pathsForClient, knownClients } = await import("../src/cli.js");
+    const names = knownClients();
+    assert.ok(names.length >= 6, `expected at least 6 clients, got ${names.length}`);
+    for (const n of names) {
+      const paths = pathsForClient(n);
+      assert.ok(paths && paths.length > 0, `client "${n}" should have at least one path`);
+    }
+    assert.equal(pathsForClient("does-not-exist"), undefined);
+    // Spot-check: Cursor's paths are Cursor-shaped.
+    assert.ok(pathsForClient("cursor")!.some((p) => p.includes(".cursor/mcp.json")));
+    // Zed's paths use the Zed settings file.
+    assert.ok(pathsForClient("zed")!.some((p) => p.includes("zed/settings.json")));
   });
 });
 

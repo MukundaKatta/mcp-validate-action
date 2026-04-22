@@ -104,9 +104,34 @@ export function activate(context: vscode.ExtensionContext): void {
       lintIfEligible(editor.document);
     }),
     vscode.commands.registerCommand("mcpcheck.explainRule", async (id?: string) => {
-      const ruleId = id ?? (await vscode.window.showQuickPick(listRuleIds(), {
-        placeHolder: "Pick a rule to explain",
-      }));
+      // Resolution order:
+      //   1. explicit argument (from the diagnostic code-link)
+      //   2. the mcpcheck diagnostic under the cursor in the active editor
+      //   3. a quickpick of every known rule id (manual discovery)
+      let ruleId = id;
+      if (!ruleId) {
+        const editor = vscode.window.activeTextEditor;
+        if (editor) {
+          const cursor = editor.selection.active;
+          const diags = vscode.languages.getDiagnostics(editor.document.uri);
+          const atCursor = diags
+            .filter((d) => d.source === DIAGNOSTIC_SOURCE && d.range.contains(cursor))
+            .sort((a, b) => a.range.start.character - b.range.start.character)[0];
+          if (atCursor?.code) {
+            const code = atCursor.code;
+            if (typeof code === "string" || typeof code === "number") {
+              ruleId = String(code);
+            } else if (typeof code === "object" && "value" in code) {
+              ruleId = String(code.value);
+            }
+          }
+        }
+      }
+      if (!ruleId) {
+        ruleId = await vscode.window.showQuickPick(listRuleIds(), {
+          placeHolder: "Pick a rule to explain",
+        });
+      }
       if (!ruleId) return;
       const text = explainRule(ruleId);
       if (!text) {

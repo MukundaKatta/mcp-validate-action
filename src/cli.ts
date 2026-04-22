@@ -40,6 +40,7 @@ interface CliOptions {
   explain?: string;
   listRules?: boolean;
   quiet: boolean;
+  client?: string;
 }
 
 /**
@@ -71,6 +72,41 @@ const DEFAULT_GLOBS = [
   "~/AppData/Roaming/Claude/claude_desktop_config.json",
 ];
 
+/**
+ * Pre-baked path sets for the `--client=<name>` convenience flag. Picks only
+ * the paths that client actually reads, so a user debugging Cursor doesn't
+ * have their Claude Desktop and Claude Code configs linted alongside.
+ */
+const CLIENT_PATHS: Record<string, string[]> = {
+  cursor: ["~/.cursor/mcp.json", "**/.cursor/mcp.json"],
+  "claude-desktop": [
+    "~/Library/Application Support/Claude/claude_desktop_config.json",
+    "~/.config/Claude/claude_desktop_config.json",
+    "~/AppData/Roaming/Claude/claude_desktop_config.json",
+    "**/claude_desktop_config.json",
+  ],
+  "claude-code": [
+    "~/.claude.json",
+    "**/.claude/mcp.json",
+    "**/.mcp.json",
+    "**/mcp.json",
+  ],
+  windsurf: [
+    "~/.codeium/windsurf/mcp_config.json",
+    "**/.codeium/windsurf/mcp_config.json",
+  ],
+  zed: ["~/.config/zed/settings.json"],
+  cline: ["**/.cline/mcp.json", "**/cline_mcp_settings.json"],
+};
+
+export function pathsForClient(name: string): string[] | undefined {
+  return CLIENT_PATHS[name];
+}
+
+export function knownClients(): string[] {
+  return Object.keys(CLIENT_PATHS);
+}
+
 function expandTilde(p: string): string {
   if (p === "~") return homedir();
   if (p.startsWith("~/") || p.startsWith("~\\")) return homedir() + p.slice(1);
@@ -99,6 +135,10 @@ async function main(): Promise<void> {
     .option("--fail-on <level>", "exit nonzero threshold: error | warning | info | never", "error")
     .option("-o, --output <path>", "write formatted output to a file")
     .option("-q, --quiet", "only print files that have issues", false)
+    .option(
+      "--client <name>",
+      `scan only one client's paths: ${knownClients().join(", ")}`
+    )
     .option("--explain <rule-id>", "print docs for a rule and exit")
     .option("--list-rules", "list all rule ids and exit", false)
     .version(readVersion(), "-v, --version")
@@ -118,8 +158,23 @@ async function main(): Promise<void> {
     )
     .parse(process.argv);
 
-  const rawInputs = program.args.length > 0 ? program.args : DEFAULT_GLOBS;
   const opts = program.opts<CliOptions>();
+
+  let defaultInputs: string[] = DEFAULT_GLOBS;
+  if (opts.client) {
+    const paths = pathsForClient(opts.client);
+    if (!paths) {
+      process.stderr.write(
+        pc.red(
+          `Unknown --client "${opts.client}". Known: ${knownClients().join(", ")}\n`
+        )
+      );
+      process.exit(2);
+    }
+    defaultInputs = paths;
+  }
+
+  const rawInputs = program.args.length > 0 ? program.args : defaultInputs;
 
   if (opts.listRules) {
     process.stdout.write(listRuleIds().join("\n") + "\n");

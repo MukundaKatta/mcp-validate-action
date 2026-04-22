@@ -45,6 +45,11 @@ export const SECRET_PATTERNS: SecretPattern[] = [
   { name: "SendGrid API key", re: /^SG\.[A-Za-z0-9_-]{22}\.[A-Za-z0-9_-]{43}$/ },
   { name: "Hugging Face token", re: /^hf_[A-Za-z0-9]{30,}$/ },
   { name: "npm access token", re: /^npm_[A-Za-z0-9]{36}$/ },
+  { name: "Mailgun API key", re: /^key-[a-f0-9]{32}$/ },
+  { name: "Replicate API token", re: /^r8_[A-Za-z0-9]{40,}$/ },
+  { name: "Perplexity API key", re: /^pplx-[A-Za-z0-9]{40,}$/ },
+  { name: "Groq API key", re: /^gsk_[A-Za-z0-9]{40,}$/ },
+  { name: "xAI (Grok) API key", re: /^xai-[A-Za-z0-9]{30,}$/ },
   // Google Cloud service account keys are JSON blobs; people sometimes paste the
   // whole thing into a single env var value. Match on the private_key_id field,
   // which is always a 40-char hex string immediately preceded by that key name.

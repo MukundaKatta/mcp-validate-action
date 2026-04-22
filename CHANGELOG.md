@@ -8,6 +8,25 @@ uses [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Policy-as-code plugin** — `extensions/enterprise-plugin/` ships
+  `@mcpcheck/enterprise`, a plugin loadable via `config.plugins` that
+  adds three rules: `enterprise/allowed-command`, `enterprise/denied-image`,
+  and `enterprise/allowed-package`. Policy lives in a separate
+  `.mcpcheck.enterprise.json` next to `mcpcheck.config.json`; missing or
+  empty lists disable the corresponding rule. 11 tests cover exact / glob
+  matches, version-suffix stripping, scoped packages, and docker argv
+  parsing.
+- **`--client=<name>` flag** — `mcpcheck --client cursor`
+  (`claude-desktop`, `claude-code`, `windsurf`, `zed`, `cline`) scans only
+  that client's paths. Replaces the need to remember the right glob when
+  debugging one setup.
+- **5 more secret providers** — Mailgun (`key-…`), Replicate (`r8_…`),
+  Perplexity (`pplx-…`), Groq (`gsk_…`), xAI / Grok (`xai-…`). All AI
+  providers MCP servers commonly wrap.
+- **VS Code: `Explain rule` picks up the rule under the cursor** — with
+  no argument, the command now reads the active editor's cursor position,
+  finds the nearest mcpcheck diagnostic, and opens its docs. Falls back
+  to the old quickpick when the cursor isn't on a finding.
 - **JSON Schema for `mcpcheck.config.json`** — a generated `schema.json`
   (committed at the repo root and also served by the playground at
   `schema.json`) gives autocomplete, inline validation, and rule

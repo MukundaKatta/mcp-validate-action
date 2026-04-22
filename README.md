@@ -59,6 +59,7 @@ node dist/cli.js        # same behavior as `mcpcheck`
 ```bash
 mcpcheck                                     # scan common MCP config paths
 mcpcheck ~/.cursor/mcp.json                  # single file
+mcpcheck --client cursor                     # only this client's paths
 mcpcheck '**/mcp.json' --format sarif        # emit SARIF for Code Scanning
 mcpcheck config.json --fix                   # apply autofixes in place
 mcpcheck config.json --fail-on warning       # strict CI
@@ -76,6 +77,7 @@ mcpcheck init                                # scaffold mcpcheck.config.json + C
 | `--fail-on error\|warning\|info\|never` | Exit-code threshold (default `error`) |
 | `--output <path>` | Write formatted output to a file |
 | `-q`, `--quiet` | In text output, hide files with no issues |
+| `--client <name>` | Scan only one client's paths: `cursor`, `claude-desktop`, `claude-code`, `windsurf`, `zed`, `cline` |
 | `--explain <rule-id>` | Print rule docs and exit |
 | `--list-rules` | List built-in rule ids and exit |
 | `-v`, `--version` | Print version |
