@@ -8,6 +8,28 @@ uses [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **`mcpcheck completions <bash|zsh|fish>`** — prints a shell completion
+  script. Tab-completes subcommands, flags, enum values (`--format`,
+  `--fail-on`, `--client`), rule ids for `--explain`, and `.json` files
+  for path-taking flags. Rule ids and client names are inlined at
+  generation time so completion stays cold-start-fast.
+- **`.pre-commit-hooks.yaml`** — downstream users can now add mcpcheck
+  to pre-commit.com with a two-line config (`repo:
+  https://github.com/MukundaKatta/mcpcheck`, `id: mcpcheck`). Exposes
+  a check-only hook and an autofix-on-commit hook; both scope to
+  the known MCP config filename patterns.
+- **Repo-level `CLAUDE.md`** — layout map, CI invariants, the
+  "adding a rule" 6-step checklist, the secret-fixture /
+  push-protection gotcha, and explicit "do not bump versions or add
+  Claude as co-author" guardrails.
+- **`docs/API.md`** — programmatic API reference: `checkSource`,
+  `applyFixes`, `checkFiles`, `locate`, `explainRule`, formatters,
+  writing a plugin, the `mcpcheck/browser` subpath, and an explicit
+  stability callout for `Issue` / `Fix` / `Plugin` / `Rule`.
+- **`src/cli-metadata.ts`** extracts `CLIENT_PATHS` / `pathsForClient`
+  / `knownClients` out of `cli.ts` so non-CLI modules (completions,
+  editors) can reuse the same lists without pulling in commander.
+  Re-exported from the package root.
 - **`mcpcheck upgrade-pins <file...>`** — for every unpinned
   `npx <pkg>` / `uvx <pkg>` in the given configs, look up the latest
   version on npm / PyPI and rewrite the package reference in place

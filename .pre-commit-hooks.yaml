@@ -1,0 +1,23 @@
+# pre-commit.com hooks exposed by this repo.
+# Downstream users add:
+#   repos:
+#     - repo: https://github.com/MukundaKatta/mcpcheck
+#       rev: v1.0.0  # or any git tag / sha
+#       hooks:
+#         - id: mcpcheck
+- id: mcpcheck
+  name: mcpcheck
+  description: Lint MCP (Model Context Protocol) config files.
+  entry: mcpcheck
+  language: node
+  files: '(mcp\.json|\.mcp\.json|claude_desktop_config\.json|cline_mcp_settings\.json|\.cursor/mcp\.json|\.codeium/windsurf/mcp_config\.json)$'
+  args: ["--fail-on", "warning"]
+  pass_filenames: true
+- id: mcpcheck-fix
+  name: mcpcheck (autofix on commit)
+  description: Apply mcpcheck autofixes in place before committing.
+  entry: mcpcheck
+  language: node
+  files: '(mcp\.json|\.mcp\.json|claude_desktop_config\.json|cline_mcp_settings\.json|\.cursor/mcp\.json|\.codeium/windsurf/mcp_config\.json)$'
+  args: ["--fix", "--fail-on", "never"]
+  pass_filenames: true

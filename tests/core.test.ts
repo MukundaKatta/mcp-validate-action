@@ -389,6 +389,29 @@ describe("formatters (markdown, junit)", () => {
   });
 });
 
+describe("shell completions", () => {
+  it("generates scripts for bash, zsh, and fish that mention every subcommand", async () => {
+    const { completionFor, listShells } = await import("../src/completions.js");
+    const SUBS = ["init", "diff", "stats", "doctor", "upgrade-pins", "completions"];
+    for (const sh of listShells()) {
+      const script = completionFor(sh);
+      assert.ok(script.length > 200, `${sh} script too short: ${script.length} bytes`);
+      for (const sub of SUBS) {
+        assert.ok(script.includes(sub), `${sh} script missing subcommand "${sub}"`);
+      }
+    }
+  });
+
+  it("inlines the current rule-id set into the explain completion", async () => {
+    const { completionFor } = await import("../src/completions.js");
+    const { listRuleIds } = await import("../src/rule-docs.js");
+    const bash = completionFor("bash");
+    for (const id of listRuleIds()) {
+      assert.ok(bash.includes(id), `bash completion missing rule id "${id}"`);
+    }
+  });
+});
+
 describe("upgrade-pins", () => {
   it("rewrites an unpinned npx package using a stubbed fetch", async () => {
     const { upgradePins } = await import("../src/upgrade-pins.js");
@@ -603,7 +626,7 @@ describe("diffReports", () => {
 
 describe("--client flag mappings", () => {
   it("every known client produces a non-empty path list, unknown returns undefined", async () => {
-    const { pathsForClient, knownClients } = await import("../src/cli.js");
+    const { pathsForClient, knownClients } = await import("../src/cli-metadata.js");
     const names = knownClients();
     assert.ok(names.length >= 6, `expected at least 6 clients, got ${names.length}`);
     for (const n of names) {
