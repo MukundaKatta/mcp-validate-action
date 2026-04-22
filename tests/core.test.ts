@@ -398,6 +398,100 @@ describe("formatters (markdown, junit)", () => {
   });
 });
 
+describe("lsp-server (spawned)", () => {
+  it("initialize + didOpen on broken.json publishes non-empty diagnostics", async () => {
+    const { spawn } = await import("node:child_process");
+    const { fileURLToPath } = await import("node:url");
+    const { dirname, resolve } = await import("node:path");
+    const { readFile } = await import("node:fs/promises");
+
+    const here = dirname(fileURLToPath(import.meta.url));
+    const cli = resolve(here, "..", "dist", "cli.js");
+    const fixture = resolve(here, "fixtures", "broken.json");
+    const fixtureText = await readFile(fixture, "utf8");
+    // The LSP server gates linting by filename; present the fixture's
+    // contents under a recognisable MCP path so the gate fires.
+    const fixtureUri = "file:///tmp/mcpcheck-lsp-test/mcp.json";
+
+    const child = spawn("node", [cli, "lsp"], { stdio: ["pipe", "pipe", "pipe"] });
+
+    const sendLsp = (o: unknown) => {
+      const body = JSON.stringify(o);
+      const header = `Content-Length: ${Buffer.byteLength(body, "utf8")}\r\n\r\n`;
+      child.stdin.write(header + body);
+    };
+
+    let buf = "";
+    const waitForDiagnostics = (): Promise<unknown> =>
+      new Promise((resolveP, rejectP) => {
+        const timer = setTimeout(() => rejectP(new Error("LSP diagnostics timeout")), 3000);
+        child.stdout.on("data", (chunk: Buffer) => {
+          buf += chunk.toString("utf8");
+          for (;;) {
+            const headerEnd = buf.indexOf("\r\n\r\n");
+            if (headerEnd < 0) return;
+            const m = /Content-Length:\s*(\d+)/i.exec(buf.slice(0, headerEnd));
+            if (!m) {
+              buf = buf.slice(headerEnd + 4);
+              continue;
+            }
+            const len = Number.parseInt(m[1]!, 10);
+            const start = headerEnd + 4;
+            if (buf.length < start + len) return;
+            const body = buf.slice(start, start + len);
+            buf = buf.slice(start + len);
+            try {
+              const msg = JSON.parse(body) as {
+                method?: string;
+                params?: { diagnostics?: unknown[] };
+              };
+              if (
+                msg.method === "textDocument/publishDiagnostics" &&
+                Array.isArray(msg.params?.diagnostics) &&
+                (msg.params!.diagnostics!.length ?? 0) > 0
+              ) {
+                clearTimeout(timer);
+                resolveP(msg.params!.diagnostics!);
+                return;
+              }
+            } catch {
+              // ignore
+            }
+          }
+        });
+      });
+
+    try {
+      sendLsp({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "initialize",
+        params: { processId: null, clientInfo: { name: "test" }, capabilities: {} },
+      });
+      sendLsp({ jsonrpc: "2.0", method: "initialized", params: {} });
+      sendLsp({
+        jsonrpc: "2.0",
+        method: "textDocument/didOpen",
+        params: {
+          textDocument: {
+            uri: fixtureUri,
+            languageId: "json",
+            version: 1,
+            text: fixtureText,
+          },
+        },
+      });
+
+      const diags = (await waitForDiagnostics()) as Array<{ code: string; severity: number }>;
+      assert.ok(diags.length > 0);
+      assert.ok(diags.some((d) => d.code === "hardcoded-secret"));
+      assert.ok(diags.some((d) => d.severity === 1), "should have at least one error-level diagnostic");
+    } finally {
+      child.kill("SIGTERM");
+    }
+  });
+});
+
 describe("mcp-server (spawned)", () => {
   it("completes initialize → tools/list → tools/call(list_rules) over stdio", async () => {
     const { spawn } = await import("node:child_process");

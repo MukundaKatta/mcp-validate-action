@@ -65,6 +65,49 @@ docker run --rm -v "$PWD:/work" -w /work ghcr.io/mukundakatta/mcpcheck mcp.json 
 
 Tags: `:latest`, `:main`, `:vYYYY.M.D`. Multi-arch (`linux/amd64` + `linux/arm64`).
 
+## Use mcpcheck in Neovim / Helix / Emacs / Zed (LSP)
+
+`mcpcheck lsp` runs a Language Server Protocol server on stdio. Point any LSP client at it; diagnostics show up in your editor with no plugin required.
+
+**Neovim (lspconfig):**
+
+```lua
+require('lspconfig.configs').mcpcheck = {
+  default_config = {
+    cmd = { 'mcpcheck', 'lsp' },
+    filetypes = { 'json', 'jsonc' },
+    root_dir = require('lspconfig.util').root_pattern('mcpcheck.config.json', '.mcp.json', 'mcp.json', '.git'),
+  },
+}
+require('lspconfig').mcpcheck.setup({})
+```
+
+**Helix (`.helix/languages.toml`):**
+
+```toml
+[[language]]
+name = "json"
+language-servers = ["vscode-json-language-server", "mcpcheck"]
+
+[language-server.mcpcheck]
+command = "mcpcheck"
+args = ["lsp"]
+```
+
+**Zed (`.zed/settings.json`):**
+
+```json
+{
+  "lsp": {
+    "mcpcheck": { "binary": { "path": "mcpcheck", "arguments": ["lsp"] } }
+  }
+}
+```
+
+**Emacs (eglot):** `(add-to-list 'eglot-server-programs '(json-mode . ("mcpcheck" "lsp")))`
+
+The LSP server publishes diagnostics with precise ranges (via mcpcheck's `locate()`), the rule id as the diagnostic `code`, and `mcpcheck` as the `source`. Runs only on files matching MCP config filename patterns.
+
 ## Use mcpcheck as an MCP server
 
 mcpcheck can also run *as* an MCP server that other AI clients call. Add it to your `claude_desktop_config.json` / `.cursor/mcp.json` / etc:

@@ -142,6 +142,11 @@ async function main(): Promise<void> {
     // Stays resident on stdin.
     return;
   }
+  if (process.argv[2] === "lsp") {
+    const { runLspServer } = await import("./lsp-server.js");
+    await runLspServer();
+    return;
+  }
   if (process.argv[2] === "merge") {
     await handleMerge(process.argv.slice(3));
     return;

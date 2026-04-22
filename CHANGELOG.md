@@ -8,6 +8,18 @@ uses [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **`mcpcheck lsp`** — Language Server Protocol server on stdio.
+  Neovim, Helix, Emacs (eglot), Zed, Sublime, Kate, and every other
+  LSP-capable editor now gets mcpcheck diagnostics with no plugin.
+  Implements the minimum lifecycle (`initialize` / `initialized` /
+  `shutdown` / `exit`), full-sync `textDocument/didOpen` / `didChange` /
+  `didSave` / `didClose`, and publishes `textDocument/publishDiagnostics`
+  with precise ranges (via `locate()`), rule id as `code`, severity
+  mapped to LSP levels (error=1, warning=2, info=3), and `mcpcheck`
+  as `source`. Spawn-based integration test pins the
+  initialize→didOpen→publishDiagnostics flow over Content-Length
+  framing (86 tests, up from 85). README has copy-pasteable setup
+  blocks for Neovim lspconfig, Helix, Zed, and Emacs eglot.
 - **`mcpcheck mcp-server`** — run mcpcheck *as* an MCP server so
   Claude Code / Cursor / any MCP-capable client can call it. Exposes
   five tools: `lint_config`, `explain_rule`, `list_rules`,
