@@ -63,6 +63,15 @@ export const SECRET_PATTERNS: SecretPattern[] = [
   { name: "Notion API token", re: /^secret_[A-Za-z0-9]{43}$/ },
   { name: "Linear API key", re: /^lin_api_[A-Za-z0-9]{40,}$/ },
   { name: "Sentry auth token", re: /^sntrys_[A-Za-z0-9_-]{60,}$/ },
+  { name: "Auth0 client secret", re: /^[A-Za-z0-9_-]{64,}$/, keyHint: /AUTH0[_-]?CLIENT[_-]?SECRET/i },
+  { name: "PlanetScale API token", re: /^pscale_(oauth|tkn)_[A-Za-z0-9_-]{40,}$/ },
+  // Supabase service_role / anon keys are JWTs. Context-scoped so we don't
+  // false-positive every 3-segment base64 string that looks like a JWT.
+  {
+    name: "Supabase service_role / anon JWT",
+    re: /^eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}$/,
+    keyHint: /SUPABASE/i,
+  },
   // Google Cloud service account keys are JSON blobs; people sometimes paste the
   // whole thing into a single env var value. Match on the private_key_id field,
   // which is always a 40-char hex string immediately preceded by that key name.

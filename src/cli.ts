@@ -136,6 +136,12 @@ async function main(): Promise<void> {
     await handleUpgradePins(process.argv.slice(3));
     return;
   }
+  if (process.argv[2] === "mcp-server") {
+    const { runMcpServer } = await import("./mcp-server.js");
+    await runMcpServer();
+    // Stays resident on stdin.
+    return;
+  }
   if (process.argv[2] === "merge") {
     await handleMerge(process.argv.slice(3));
     return;

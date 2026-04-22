@@ -201,6 +201,9 @@ describe("checkSource - expanded secret providers", () => {
     ["NOTION_API_TOKEN", "secret_" + "a".repeat(43), "Notion API token"],
     ["LINEAR_API_KEY", "lin_api_" + "a".repeat(42), "Linear API key"],
     ["SENTRY_AUTH_TOKEN", "sntrys_" + "a".repeat(64), "Sentry auth token"],
+    ["AUTH0_CLIENT_SECRET", "a".repeat(64), "Auth0 client secret"],
+    ["PLANETSCALE_TOKEN", "pscale_oauth_" + "a".repeat(44), "PlanetScale API token"],
+    ["SUPABASE_SERVICE_ROLE_KEY", "eyJ" + "a".repeat(18) + "." + "b".repeat(18) + "." + "c".repeat(18), "Supabase service_role / anon JWT"],
     // Synthetic value that matches the Discord regex (three dotted segments
     // of the right lengths) without looking like a real base64-encoded
     // snowflake id. We use uppercase placeholder runs so GitHub's secret
@@ -392,6 +395,77 @@ describe("formatters (markdown, junit)", () => {
     assert.ok(xml.includes('failures="1"'));
     assert.ok(xml.includes('<failure '));
     assert.ok(xml.includes("hardcoded-secret"));
+  });
+});
+
+describe("mcp-server (spawned)", () => {
+  it("completes initialize → tools/list → tools/call(list_rules) over stdio", async () => {
+    const { spawn } = await import("node:child_process");
+    const { fileURLToPath } = await import("node:url");
+    const { dirname, resolve } = await import("node:path");
+
+    const here = dirname(fileURLToPath(import.meta.url));
+    const cli = resolve(here, "..", "dist", "cli.js");
+    const child = spawn("node", [cli, "mcp-server"], {
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+
+    const stdout: string[] = [];
+    let leftover = "";
+    child.stdout.setEncoding("utf8");
+    const awaitLines = (n: number): Promise<string[]> =>
+      new Promise((resolveP) => {
+        const check = () => {
+          if (stdout.length >= n) resolveP(stdout.slice(0, n));
+        };
+        child.stdout.on("data", (chunk: string) => {
+          leftover += chunk;
+          let nl = leftover.indexOf("\n");
+          while (nl >= 0) {
+            stdout.push(leftover.slice(0, nl));
+            leftover = leftover.slice(nl + 1);
+            nl = leftover.indexOf("\n");
+          }
+          check();
+        });
+        check();
+      });
+
+    const send = (o: unknown) => child.stdin.write(JSON.stringify(o) + "\n");
+
+    try {
+      send({ jsonrpc: "2.0", id: 1, method: "initialize", params: {} });
+      send({ jsonrpc: "2.0", method: "notifications/initialized" });
+      send({ jsonrpc: "2.0", id: 2, method: "tools/list" });
+      send({
+        jsonrpc: "2.0",
+        id: 3,
+        method: "tools/call",
+        params: { name: "list_rules", arguments: {} },
+      });
+
+      const lines = await awaitLines(3);
+      const initResp = JSON.parse(lines[0]!);
+      assert.equal(initResp.id, 1);
+      assert.equal(initResp.result.protocolVersion, "2024-11-05");
+      assert.ok(initResp.result.capabilities.tools, "server should advertise tools capability");
+
+      const toolsResp = JSON.parse(lines[1]!);
+      assert.equal(toolsResp.id, 2);
+      const toolNames = (toolsResp.result.tools as { name: string }[]).map((t) => t.name);
+      assert.ok(toolNames.includes("lint_config"));
+      assert.ok(toolNames.includes("explain_rule"));
+      assert.ok(toolNames.includes("list_rules"));
+      assert.ok(toolNames.includes("fix_config"));
+
+      const callResp = JSON.parse(lines[2]!);
+      assert.equal(callResp.id, 3);
+      const listText: string = callResp.result.content[0].text;
+      assert.ok(listText.includes("hardcoded-secret"));
+      assert.ok(listText.includes("dangerous-command"));
+    } finally {
+      child.kill("SIGTERM");
+    }
   });
 });
 

@@ -8,6 +8,20 @@ uses [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **`mcpcheck mcp-server`** — run mcpcheck *as* an MCP server so
+  Claude Code / Cursor / any MCP-capable client can call it. Exposes
+  five tools: `lint_config`, `explain_rule`, `list_rules`,
+  `fix_config` (with optional `write=true`), and `stats_config`.
+  JSON-RPC 2.0 over stdio, newline-delimited, no network. Spawn test
+  (initialize → tools/list → tools/call) pins the protocol shape
+  (85 core tests, up from 81).
+- **4 more secret providers** — Auth0 client secrets (context-scoped
+  to `AUTH0_CLIENT_SECRET`-style env names), PlanetScale OAuth + API
+  tokens (`pscale_…`), Supabase service_role / anon JWTs
+  (context-scoped to env names containing `SUPABASE`). Clerk uses
+  the same `sk_live_…` / `sk_test_…` prefix as Stripe, so it's
+  already covered by the Stripe pattern. 33 patterns now (actually
+  matching 30 distinct prefix families).
 - **`mcpcheck merge <a.json> <b.json> [...]`** — union two or more
   MCP configs. Server maps combine; on name collisions, later files
   win. If inputs use different server-map keys (`mcpServers` vs

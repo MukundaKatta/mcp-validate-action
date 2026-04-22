@@ -65,6 +65,26 @@ docker run --rm -v "$PWD:/work" -w /work ghcr.io/mukundakatta/mcpcheck mcp.json 
 
 Tags: `:latest`, `:main`, `:vYYYY.M.D`. Multi-arch (`linux/amd64` + `linux/arm64`).
 
+## Use mcpcheck as an MCP server
+
+mcpcheck can also run *as* an MCP server that other AI clients call. Add it to your `claude_desktop_config.json` / `.cursor/mcp.json` / etc:
+
+```json
+{
+  "mcpServers": {
+    "mcpcheck": { "command": "mcpcheck", "args": ["mcp-server"] }
+  }
+}
+```
+
+Then ask your client things like:
+
+- "Lint my MCP config at `~/.cursor/mcp.json`"
+- "Explain the `dangerous-command` rule"
+- "Run `fix_config` on `~/.claude.json` with write=false and show me the diff"
+
+Tools exposed: `lint_config`, `explain_rule`, `list_rules`, `fix_config`, `stats_config`. JSON-RPC 2.0 over stdio, no network.
+
 ## Usage
 
 ### CLI
