@@ -43,6 +43,16 @@
       { "command": "mcpcheck.fixAllInWorkspace", "title": "mcpcheck: Fix all autofixable issues across workspace" },
       { "command": "mcpcheck.explainRule", "title": "mcpcheck: Explain rule..." }
     ],
+    "snippets": [
+      {
+        "language": "json",
+        "path": "./snippets/mcp-servers.code-snippets"
+      },
+      {
+        "language": "jsonc",
+        "path": "./snippets/mcp-servers.code-snippets"
+      }
+    ],
     "jsonValidation": [
       {
         "fileMatch": "mcpcheck.config.json",

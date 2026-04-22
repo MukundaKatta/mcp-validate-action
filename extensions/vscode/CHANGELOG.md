@@ -42,3 +42,7 @@ All notable changes to the mcpcheck VS Code extension.
 - **Status-bar item** — compact `mcpcheck: 3E 2W (4⚡)` pill for the
   active file. Click runs Fix all. Background flips to error-red when
   errors are present.
+- **Snippets for common MCP server shapes.** Type `mcp-filesystem`,
+  `mcp-github`, `mcp-sse`, `mcp-uvx`, `mcp-stdio`, or `mcp-skeleton`
+  in any JSON / JSONC file to scaffold a pinned, env-substituted
+  server entry. Tab through placeholders for name / version / tokens.

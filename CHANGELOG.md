@@ -8,6 +8,18 @@ uses [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **VS Code snippets** — six ready-to-expand snippets for common MCP
+  server shapes: filesystem (pinned npx), GitHub (docker + env
+  substitution), stdio with env, remote SSE endpoint, uvx Python, and
+  a top-level `mcpServers` skeleton. Type `mcp-filesystem` / `mcp-github`
+  / `mcp-sse` / `mcp-uvx` / `mcp-stdio` / `mcp-skeleton` in a JSON /
+  JSONC file and tab-complete through the placeholders.
+- **Playground sample dropdown** — five built-in sample configs (broken
+  kitchen sink, clean Claude Desktop, Cursor with remote SSE, Zed's
+  `context_servers`, JSONC with comments) to switch between when
+  showing the playground off. Replaces the single "Load sample" button.
+- **`mcpcheck --explain all`** — dumps every rule's full docs
+  (previously one rule per invocation).
 - **`mcpcheck doctor`** — per-client health summary in one screen.
   Resolves each known MCP client (Claude Desktop, Claude Code, Cursor,
   Cline, Windsurf, Zed), picks the first candidate path that exists,

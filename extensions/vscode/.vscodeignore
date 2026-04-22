@@ -14,3 +14,4 @@ tsconfig.json
 node_modules/**
 !out/extension.cjs
 !schema/mcpcheck.schema.json
+!snippets/mcp-servers.code-snippets

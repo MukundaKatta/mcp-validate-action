@@ -54,7 +54,15 @@
         <div class="toolbar">
           <label for="filename">File name</label>
           <input id="filename" type="text" value="claude_desktop_config.json" />
-          <button id="sample" type="button">Load sample</button>
+          <label for="sample-picker" class="visually-hidden">Load sample</label>
+          <select id="sample-picker" title="Load a sample config">
+            <option value="" disabled selected>Load sample…</option>
+            <option value="broken">Broken (kitchen sink)</option>
+            <option value="claude-desktop">Claude Desktop, clean</option>
+            <option value="cursor">Cursor, with remote SSE</option>
+            <option value="zed">Zed (context_servers)</option>
+            <option value="jsonc">JSONC with comments</option>
+          </select>
           <button id="fix" type="button" title="Apply every autofix in place">
             Fix all
           </button>

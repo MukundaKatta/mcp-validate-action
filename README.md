@@ -8,6 +8,8 @@ A linter for **MCP (Model Context Protocol)** config files. Works on every clien
 
 Fast: median **~42µs per config** on a mid-sized Mac (`npm run bench`) — thousands of files per second, no cache required.
 
+**Try it live:** [`mukundakatta.github.io/mcpcheck`](https://mukundakatta.github.io/mcpcheck/) — paste a config, see diagnostics, apply autofixes, all in-browser.
+
 - **CLI** — `mcpcheck` auto-discovers configs for each client or lints anything you glob at it.
 - **Web playground** — paste a config in your browser, see diagnostics and Quick Fixes live. See [playground/](./playground).
 - **VS Code extension** — inline diagnostics and Quick Fixes while you edit your MCP config. See [extensions/vscode/](./extensions/vscode).

@@ -1,0 +1,81 @@
+{
+  "MCP server: filesystem (npx, pinned)": {
+    "scope": "json,jsonc",
+    "prefix": ["mcp-filesystem", "mcp-fs"],
+    "description": "Pinned @modelcontextprotocol/server-filesystem via npx.",
+    "body": [
+      "\"${1:filesystem}\": {",
+      "  \"command\": \"npx\",",
+      "  \"args\": [\"-y\", \"@modelcontextprotocol/server-filesystem@${2:0.6.2}\", \"${3:/Users/me/Documents}\"]",
+      "}$0"
+    ]
+  },
+  "MCP server: GitHub (docker, env-substituted token)": {
+    "scope": "json,jsonc",
+    "prefix": ["mcp-github"],
+    "description": "GitHub MCP server via docker with a ${GITHUB_PERSONAL_ACCESS_TOKEN} substitution.",
+    "body": [
+      "\"${1:github}\": {",
+      "  \"command\": \"docker\",",
+      "  \"args\": [\"run\", \"-i\", \"--rm\", \"ghcr.io/github/github-mcp-server:${2:1.0.0}\"],",
+      "  \"env\": {",
+      "    \"GITHUB_PERSONAL_ACCESS_TOKEN\": \"\\${GITHUB_PERSONAL_ACCESS_TOKEN}\"",
+      "  }",
+      "}$0"
+    ]
+  },
+  "MCP server: stdio with env variables": {
+    "scope": "json,jsonc",
+    "prefix": ["mcp-stdio", "mcp-env"],
+    "description": "Local stdio server with \\${ENV_VAR} substitution rather than hardcoded secrets.",
+    "body": [
+      "\"${1:myserver}\": {",
+      "  \"command\": \"${2:/usr/local/bin/my-mcp}\",",
+      "  \"args\": [\"${3:--flag}\"],",
+      "  \"env\": {",
+      "    \"${4:OPENAI_API_KEY}\": \"\\${${4:OPENAI_API_KEY}}\"",
+      "  }",
+      "}$0"
+    ]
+  },
+  "MCP server: remote SSE endpoint": {
+    "scope": "json,jsonc",
+    "prefix": ["mcp-sse", "mcp-remote"],
+    "description": "Remote MCP server via SSE / streamable HTTP.",
+    "body": [
+      "\"${1:remote}\": {",
+      "  \"url\": \"https://${2:example.com}/mcp\",",
+      "  \"transport\": \"${3|sse,streamable-http|}\",",
+      "  \"headers\": {",
+      "    \"Authorization\": \"Bearer \\${${4:API_TOKEN}}\"",
+      "  }",
+      "}$0"
+    ]
+  },
+  "MCP server: uvx (Python package, pinned)": {
+    "scope": "json,jsonc",
+    "prefix": ["mcp-uvx", "mcp-python"],
+    "description": "Python MCP server via uvx, pinned with == syntax.",
+    "body": [
+      "\"${1:pyserver}\": {",
+      "  \"command\": \"uvx\",",
+      "  \"args\": [\"${2:mcp-server-name}==${3:0.2.0}\"]",
+      "}$0"
+    ]
+  },
+  "Skeleton: mcpServers wrapper": {
+    "scope": "json,jsonc",
+    "prefix": ["mcp-skeleton", "mcp-wrapper"],
+    "description": "Top-level mcpServers wrapper with a single placeholder entry.",
+    "body": [
+      "{",
+      "  \"mcpServers\": {",
+      "    \"${1:name}\": {",
+      "      \"command\": \"${2:npx}\",",
+      "      \"args\": [\"${3:-y}\", \"${4:@modelcontextprotocol/server-filesystem@0.6.2}\", \"${5:/tmp}\"]",
+      "    }",
+      "  }",
+      "}$0"
+    ]
+  }
+}

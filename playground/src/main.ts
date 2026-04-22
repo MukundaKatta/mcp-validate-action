@@ -18,9 +18,11 @@ import {
   type Issue,
 } from "mcpcheck/browser";
 
-const SAMPLE = `{
-  // Paste your MCP config here. This sample shows what a real
-  // misconfigured config looks like — try hitting "Fix all".
+const SAMPLES: Record<string, { filename: string; content: string }> = {
+  broken: {
+    filename: "broken.json",
+    content: `{
+  // Misconfigured kitchen-sink — try hitting "Fix all".
   "mcpServers": {
     "leaky": {
       "command": "node",
@@ -42,11 +44,97 @@ const SAMPLE = `{
     }
   }
 }
-`;
+`,
+  },
+  "claude-desktop": {
+    filename: "claude_desktop_config.json",
+    content: `{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem@0.6.2",
+        "/Users/me/Documents"
+      ]
+    },
+    "github": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "ghcr.io/github/github-mcp-server:1.0.0"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "\${GITHUB_PERSONAL_ACCESS_TOKEN}"
+      }
+    }
+  }
+}
+`,
+  },
+  cursor: {
+    filename: ".cursor/mcp.json",
+    content: `{
+  "mcpServers": {
+    "everything": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-everything@0.6.2"]
+    },
+    "remote": {
+      "url": "https://mcp.example.com/sse",
+      "transport": "sse",
+      "headers": {
+        "Authorization": "Bearer \${MCP_TOKEN}"
+      }
+    }
+  }
+}
+`,
+  },
+  zed: {
+    filename: "zed-settings.json",
+    content: `{
+  "theme": "One Dark",
+  "context_servers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem@0.6.2", "/tmp"]
+    },
+    "github": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "ghcr.io/github/github-mcp-server:1.0.0"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "\${GITHUB_PERSONAL_ACCESS_TOKEN}"
+      }
+    }
+  }
+}
+`,
+  },
+  jsonc: {
+    filename: "mcp.json",
+    content: `{
+  // Claude Desktop / Cursor / VS Code accept JSONC in practice; mcpcheck
+  // strips comments + trailing commas before parsing so it lints the file
+  // you actually wrote.
+  "mcpServers": {
+    /* Pinned exactly, no env vars required */
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem@0.6.2",
+        "/tmp",
+      ],
+    },
+  },
+}
+`,
+  },
+};
+
+const DEFAULT_SAMPLE_KEY = "broken";
 
 const $input = document.getElementById("input") as HTMLTextAreaElement;
 const $filename = document.getElementById("filename") as HTMLInputElement;
-const $sample = document.getElementById("sample") as HTMLButtonElement;
+const $samplePicker = document.getElementById("sample-picker") as HTMLSelectElement;
 const $fix = document.getElementById("fix") as HTMLButtonElement;
 const $summary = document.getElementById("summary") as HTMLDivElement;
 const $issues = document.getElementById("issues") as HTMLOListElement;
@@ -173,14 +261,20 @@ function fixAll(): void {
   window.setTimeout(run, 1000);
 }
 
+function loadSample(key: string): void {
+  const sample = SAMPLES[key];
+  if (!sample) return;
+  $input.value = sample.content;
+  $filename.value = sample.filename;
+  run();
+}
+
 $input.addEventListener("input", scheduleRun);
 $filename.addEventListener("input", scheduleRun);
-$sample.addEventListener("click", () => {
-  $input.value = SAMPLE;
-  run();
+$samplePicker.addEventListener("change", () => {
+  if ($samplePicker.value) loadSample($samplePicker.value);
 });
 $fix.addEventListener("click", fixAll);
 
-// Boot: load the sample so the page is useful immediately.
-$input.value = SAMPLE;
-run();
+// Boot: load the default sample so the page is useful immediately.
+loadSample(DEFAULT_SAMPLE_KEY);

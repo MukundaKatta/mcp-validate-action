@@ -184,8 +184,15 @@ The rule flags:
 ];
 
 export function explainRule(id: string): string | undefined {
+  if (id === "all" || id === "*") {
+    return RULE_DOCS.map(renderOne).join("\n\n" + "─".repeat(72) + "\n\n") + "\n";
+  }
   const doc = RULE_DOCS.find((d) => d.id === id);
   if (!doc) return undefined;
+  return renderOne(doc);
+}
+
+function renderOne(doc: RuleDoc): string {
   return [
     `${doc.id}  —  ${doc.title}`,
     `default: ${doc.defaultSeverity}${doc.autofix ? "  •  autofix: yes" : ""}`,
