@@ -16,9 +16,10 @@ import { Command } from "commander";
 import { globby } from "globby";
 import pc from "picocolors";
 
-import { checkFiles } from "./core.js";
+import { checkFiles } from "./core-fs.js";
 import { applyFixes } from "./fix.js";
-import { mergeConfig, loadConfigFile } from "./config.js";
+import { mergeConfig } from "./config.js";
+import { loadConfigFile } from "./config-fs.js";
 import { loadPlugins, hasLicense } from "./plugins.js";
 import { formatText } from "./formatters/text.js";
 import { formatJson } from "./formatters/json.js";

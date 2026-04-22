@@ -1,0 +1,19 @@
+{
+  "name": "mcpcheck-playground",
+  "private": true,
+  "description": "Browser playground for mcpcheck — paste an MCP config, see diagnostics live.",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "mcpcheck": "file:.."
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0",
+    "typescript": "^5.7.2"
+  }
+}

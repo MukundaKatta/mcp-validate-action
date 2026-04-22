@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>mcpcheck — paste a config, see issues live</title>
+    <meta
+      name="description"
+      content="Paste an MCP (Model Context Protocol) config for Claude Desktop, Claude Code, Cursor, Cline, Windsurf, or Zed — mcpcheck flags hardcoded secrets, missing transports, unpinned packages, dangerous commands, and more, entirely in your browser."
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>mcpcheck</h1>
+      <p class="tagline">
+        Paste an MCP config. See issues live. Nothing leaves your browser.
+      </p>
+      <nav>
+        <a href="https://github.com/MukundaKatta/mcpcheck">GitHub</a>
+        <a href="https://github.com/MukundaKatta/mcpcheck/blob/main/docs/RULES.md">Rules</a>
+        <a href="https://github.com/MukundaKatta/mcpcheck#readme">CLI</a>
+        <a href="https://github.com/MukundaKatta/mcpcheck/tree/main/extensions/vscode">VS Code</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="editor">
+        <div class="toolbar">
+          <label for="filename">File name</label>
+          <input id="filename" type="text" value="claude_desktop_config.json" />
+          <button id="sample" type="button">Load sample</button>
+          <button id="fix" type="button" title="Apply every autofix in place">
+            Fix all
+          </button>
+        </div>
+        <textarea
+          id="input"
+          spellcheck="false"
+          autocapitalize="off"
+          autocomplete="off"
+          autocorrect="off"
+          aria-label="MCP config source"
+        ></textarea>
+      </section>
+
+      <section class="results" aria-live="polite">
+        <div class="summary" id="summary">Start typing to see diagnostics…</div>
+        <ol id="issues" class="issues"></ol>
+      </section>
+    </main>
+
+    <footer>
+      <p>
+        100% client-side. Your config is never sent anywhere. Same engine as
+        the CLI, GitHub Action, and VS Code extension.
+      </p>
+    </footer>
+
+    <dialog id="explain-dialog">
+      <h2 id="explain-title"></h2>
+      <pre id="explain-body"></pre>
+      <form method="dialog"><button>Close</button></form>
+    </dialog>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

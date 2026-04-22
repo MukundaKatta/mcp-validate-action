@@ -140,3 +140,46 @@ jobs:
           name: mcpcheck-vscode-vsix
           path: extensions/vscode/*.vsix
           if-no-files-found: error
+
+  playground:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    defaults:
+      run:
+        working-directory: playground
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install + build mcpcheck core (playground depends on file:..)
+        working-directory: .
+        run: |
+          npm install --no-audit --no-fund
+          npm run build
+
+      - name: Install playground deps
+        run: npm install --no-audit --no-fund
+
+      - name: Type-check
+        run: npm run lint
+
+      - name: Build static site
+        run: npm run build
+
+      - name: Assert rules are in the bundle
+        run: |
+          for id in hardcoded-secret dangerous-command unstable-reference context_servers; do
+            if ! grep -q "$id" dist/app.js; then
+              echo "Missing $id in browser bundle"
+              exit 1
+            fi
+          done
+
+      - name: Upload playground artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mcpcheck-playground
+          path: playground/dist
+          if-no-files-found: error

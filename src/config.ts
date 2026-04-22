@@ -1,4 +1,3 @@
-import { readFileSync } from "node:fs";
 import type { Mcpcheckconfig, RulesConfig } from "./types.js";
 
 export const DEFAULT_CONFIG: Mcpcheckconfig = {
@@ -37,7 +36,3 @@ export function mergeConfig(
   return merged;
 }
 
-export function loadConfigFile(path: string): Mcpcheckconfig {
-  const raw = readFileSync(path, "utf8");
-  return mergeConfig(JSON.parse(raw) as Partial<Mcpcheckconfig>);
-}

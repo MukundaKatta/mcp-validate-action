@@ -8,6 +8,21 @@ uses [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Web playground** — `playground/` ships a static site that lints an MCP
+  config live in the browser. Paste / type a config, see diagnostics with
+  precise line numbers and clickable rule-id code links, hit "Fix all" to
+  apply every autofix. Same engine as CLI / GH Action / VS Code extension;
+  nothing leaves the browser. Auto-deployed to GitHub Pages via a new
+  `pages.yml` workflow.
+- **`mcpcheck/browser` subpath export** — a dedicated browser-safe entry
+  that re-exports `checkSource`, `applyFixes`, `locate`, `parseJsonc`,
+  `explainRule`, `RULE_DOCS`, and the built-in rules with zero `node:*`
+  dependencies, so downstream web apps, workers, and Deno can embed
+  mcpcheck without shimming `node:fs`.
+- **`core-fs.ts` / `config-fs.ts`** — internal split separating the
+  fs-dependent helpers (`checkFiles`, `loadConfigFile`) from the pure
+  ones. No change to the public Node-facing API: `import { checkFiles,
+  loadConfigFile } from "mcpcheck"` still works.
 - **VS Code extension** — `extensions/vscode/` ships `mcpcheck-vscode`, a
   self-contained extension that runs the same rules inline while you edit
   MCP configs. Provides a Quick Fix for hardcoded secrets, a

@@ -7,6 +7,7 @@
 A linter for **MCP (Model Context Protocol)** config files. Works on every client that reads `mcp.json` / `.mcp.json` / `claude_desktop_config.json` / Zed's `context_servers`: Claude Desktop, Claude Code, Cursor, Cline, Windsurf, Zed.
 
 - **CLI** — `mcpcheck` auto-discovers configs for each client or lints anything you glob at it.
+- **Web playground** — paste a config in your browser, see diagnostics and Quick Fixes live. See [playground/](./playground).
 - **VS Code extension** — inline diagnostics and Quick Fixes while you edit your MCP config. See [extensions/vscode/](./extensions/vscode).
 - **GitHub Action** — inline PR annotations + SARIF for Code Scanning.
 - **Autofix** — replaces hardcoded secrets with `${VAR}` interpolation.

@@ -1,4 +1,3 @@
-import { readFile } from "node:fs/promises";
 import { mergeConfig } from "./config.js";
 import { parseJsonc } from "./jsonc.js";
 import { BUILTIN_RULES } from "./rules/index.js";
@@ -8,7 +7,6 @@ import type {
   Mcpcheckconfig,
   Rule,
   RuleContext,
-  RunReport,
 } from "./types.js";
 
 export interface CheckOptions {
@@ -57,35 +55,13 @@ export function checkSource(source: string, file: string, opts: CheckOptions = {
 }
 
 /**
- * Validate a list of files on disk, returning one RunReport with aggregate
- * counts.
+ * Shared by `checkFiles` and any other multi-file runner that wants the same
+ * aggregate counts/duration behaviour without depending on `node:fs`.
  */
-export async function checkFiles(
-  files: string[],
-  opts: CheckOptions = {}
-): Promise<RunReport> {
-  const start = Date.now();
-  const results: FileReport[] = [];
-  for (const file of files) {
-    try {
-      const source = await readFile(file, "utf8");
-      results.push(checkSource(source, file, opts));
-    } catch (err) {
-      results.push({
-        file,
-        fatal: true,
-        issues: [
-          {
-            ruleId: "unreadable",
-            severity: "error",
-            message: `Could not read file: ${(err as Error).message}`,
-            jsonPath: "",
-          },
-        ],
-      });
-    }
-  }
-
+export function aggregateReports(
+  results: FileReport[],
+  durationMs: number
+): import("./types.js").RunReport {
   let errorCount = 0;
   let warningCount = 0;
   let infoCount = 0;
@@ -96,13 +72,12 @@ export async function checkFiles(
       else if (i.severity === "info") infoCount += 1;
     }
   }
-
   return {
     files: results,
     errorCount,
     warningCount,
     infoCount,
-    durationMs: Date.now() - start,
+    durationMs,
   };
 }
 
