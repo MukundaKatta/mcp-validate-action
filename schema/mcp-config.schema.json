@@ -85,6 +85,11 @@
           "type": "string",
           "description": "Optional icon (data URI, path, or emoji) for clients that render one."
         },
+        "x-mcpcheck-ignore": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of mcpcheck rule ids to silence for this server entry (mcpcheck extension)."
+        },
         "name": {
           "type": "string",
           "description": "Optional display name override; defaults to the map key."

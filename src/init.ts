@@ -64,7 +64,8 @@ const DEFAULT_CONFIG = `{
     "duplicateImage":        { "enabled": true,  "severity": "warning" },
     "nonAsciiServerName":    { "enabled": true,  "severity": "info"    },
     "urlEmbeddedCredentials": { "enabled": true, "severity": "error"   },
-    "passwordFlagLiteral":   { "enabled": true,  "severity": "error"   }
+    "passwordFlagLiteral":   { "enabled": true,  "severity": "error"   },
+    "missingDigestPin":      { "enabled": true,  "severity": "info"    }
   }
 }
 `;

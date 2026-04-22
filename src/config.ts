@@ -31,6 +31,7 @@ export const DEFAULT_CONFIG: Mcpcheckconfig = {
     nonAsciiServerName: { enabled: true, severity: "info" },
     urlEmbeddedCredentials: { enabled: true, severity: "error" },
     passwordFlagLiteral: { enabled: true, severity: "error" },
+    missingDigestPin: { enabled: true, severity: "info" },
   },
 };
 

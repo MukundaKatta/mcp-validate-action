@@ -77,6 +77,7 @@ export interface RulesConfig {
   nonAsciiServerName: RuleConfig;
   urlEmbeddedCredentials: RuleConfig;
   passwordFlagLiteral: RuleConfig;
+  missingDigestPin: RuleConfig;
 }
 
 export interface Mcpcheckconfig {

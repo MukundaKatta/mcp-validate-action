@@ -22,6 +22,7 @@ import { duplicateImageRule } from "./duplicate-image.js";
 import { nonAsciiServerNameRule } from "./non-ascii-server-name.js";
 import { urlEmbeddedCredsRule } from "./url-embedded-creds.js";
 import { passwordFlagLiteralRule } from "./password-flag-literal.js";
+import { missingDigestPinRule } from "./missing-digest-pin.js";
 
 export const BUILTIN_RULES: Rule[] = [
   structureRules,
@@ -47,4 +48,5 @@ export const BUILTIN_RULES: Rule[] = [
   nonAsciiServerNameRule,
   urlEmbeddedCredsRule,
   passwordFlagLiteralRule,
+  missingDigestPinRule,
 ];

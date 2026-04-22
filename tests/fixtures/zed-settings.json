@@ -10,7 +10,8 @@
       "args": ["run", "-i", "--rm", "ghcr.io/github/github-mcp-server:1.0.0"],
       "env": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
-      }
+      },
+      "x-mcpcheck-ignore": ["missing-digest-pin"]
     }
   }
 }

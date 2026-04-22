@@ -50,8 +50,48 @@ export function checkSource(source: string, file: string, opts: CheckOptions = {
     issues.push(...rule(ctx));
   }
 
-  issues.sort(byLineThenPath);
-  return { file, issues, fatal: false };
+  const ignoreMap = collectIgnoreMap(parsed);
+  const filtered = ignoreMap.size === 0 ? issues : issues.filter((i) => !suppressed(i, ignoreMap));
+
+  filtered.sort(byLineThenPath);
+  return { file, issues: filtered, fatal: false };
+}
+
+/**
+ * Map each server name → the set of rule ids it opts out of, pulled from its
+ * optional `x-mcpcheck-ignore` field. Lets users silence a specific rule on
+ * a specific server without touching `mcpcheck.config.json` — the most common
+ * "I know, that's intentional" request.
+ */
+function collectIgnoreMap(parsed: unknown): Map<string, Set<string>> {
+  const out = new Map<string, Set<string>>();
+  if (typeof parsed !== "object" || parsed === null) return out;
+  const c = parsed as Record<string, unknown>;
+  const servers =
+    (c.mcpServers ?? c.servers ?? c.context_servers) as
+      | Record<string, unknown>
+      | undefined;
+  if (!servers || typeof servers !== "object" || Array.isArray(servers)) return out;
+  for (const [name, raw] of Object.entries(servers)) {
+    if (typeof raw !== "object" || raw === null) continue;
+    const ignore = (raw as Record<string, unknown>)["x-mcpcheck-ignore"];
+    if (!Array.isArray(ignore)) continue;
+    const ids = new Set<string>();
+    for (const id of ignore) if (typeof id === "string") ids.add(id);
+    if (ids.size > 0) out.set(name, ids);
+  }
+  return out;
+}
+
+function suppressed(issue: Issue, ignoreMap: Map<string, Set<string>>): boolean {
+  for (const [serverName, ids] of ignoreMap) {
+    if (!ids.has(issue.ruleId)) continue;
+    // Issue paths look like `mcpServers.<server>.<field>` — check that the
+    // server name is a whole-segment match, not a prefix.
+    const parts = issue.jsonPath.split(".");
+    if (parts.length >= 2 && parts[1] === serverName) return true;
+  }
+  return false;
 }
 
 /**

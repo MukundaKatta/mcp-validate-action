@@ -8,6 +8,19 @@ uses [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Per-server rule suppression.** A server entry can now include
+  `"x-mcpcheck-ignore": ["rule-id", …]` to silence specific rules on
+  just that entry. Added to `KNOWN_SERVER_FIELDS` so `unknown-field`
+  doesn't fire on it; schema/docs updated. Closes the "I know, that's
+  intentional" request without forcing a repo-wide config change.
+- **New rule: `missing-digest-pin`** (info) — docker images pinned to
+  a tag (`image:1.0.0`) but not to a content-addressed digest
+  (`image@sha256:…`). Strictly stronger than `unstable-reference`;
+  fires only when `unstable-reference` wouldn't (no floating tag). 31
+  built-in rules.
+- **2 more providers** — Heroku API keys (UUID shape, context-scoped
+  to `HEROKU`), Buildkite API tokens (`bkua_…` / `bks_…`). OpenRouter
+  keys (`sk-or-…`) are already caught by the OpenAI pattern.
 - **New rule: `url-embedded-credentials`** (error) — `url:
   "https://user:pass@host"` leaks the credential into browser
   history, proxy logs, and error traces. Worse than

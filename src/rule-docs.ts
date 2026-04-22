@@ -185,6 +185,16 @@ Plain-http local endpoints are handled separately by the \`invalid-url\` rule (h
 **Fix:** switch the URL scheme to https (or drop the credential header if the server really is open).`,
   },
   {
+    id: "missing-digest-pin",
+    title: "Docker image is tag-pinned but not digest-pinned",
+    defaultSeverity: "info",
+    autofix: false,
+    summary: "`docker run image:1.0.0` pins the tag, but tags can be re-pushed.",
+    details: `Tag pins stop working the moment someone re-pushes the tag. Digest pins (\`image@sha256:…\`) are content-addressed. Fires only on images that already have a tag — \`:latest\` / missing tag / mutable-tag cases are caught by \`unstable-reference\` first.
+
+**Fix:** \`docker inspect --format='{{index .RepoDigests 0}}' image:1.0.0\` prints the digest-pinned form.`,
+  },
+  {
     id: "url-embedded-credentials",
     title: "URL with embedded credentials",
     defaultSeverity: "error",

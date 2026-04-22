@@ -245,6 +245,14 @@
             "enabled": true,
             "severity": "error"
           }
+        },
+        "missingDigestPin": {
+          "$ref": "#/$defs/RuleConfig",
+          "description": "Docker image is tag-pinned but not digest-pinned — `docker run image:1.0.0` pins the tag, but tags can be re-pushed.",
+          "default": {
+            "enabled": true,
+            "severity": "info"
+          }
         }
       }
     },

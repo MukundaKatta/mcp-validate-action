@@ -181,6 +181,34 @@ describe("checkSource - Azure secret heuristic", () => {
   });
 });
 
+describe("per-server x-mcpcheck-ignore", () => {
+  it("suppresses matching rule ids for the named server only", async () => {
+    const { checkSource } = await import("../src/core.js");
+    const src = `{
+      "mcpServers": {
+        "allowed": {
+          "command": "npx",
+          "args": ["-y", "@modelcontextprotocol/server-fs"],
+          "x-mcpcheck-ignore": ["unstable-reference"]
+        },
+        "flagged": {
+          "command": "npx",
+          "args": ["-y", "@modelcontextprotocol/server-fs"]
+        }
+      }
+    }`;
+    const report = checkSource(src, "x.json");
+    const unstable = report.issues.filter((i) => i.ruleId === "unstable-reference");
+    assert.equal(unstable.length, 1, "only the unignored server should still trip unstable-reference");
+    assert.ok(unstable[0]!.jsonPath.includes("flagged"));
+    // And unknown-field should NOT fire on "x-mcpcheck-ignore" itself.
+    const unknown = report.issues.filter(
+      (i) => i.ruleId === "unknown-field" && i.jsonPath.endsWith("x-mcpcheck-ignore")
+    );
+    assert.equal(unknown.length, 0);
+  });
+});
+
 describe("checkSource - expanded secret providers", () => {
   const cases: Array<[string, string, string]> = [
     ["GITLAB_TOKEN", "glpat-abcdefghij1234567890", "GitLab personal token"],
@@ -235,6 +263,8 @@ describe("checkSource - expanded secret providers", () => {
     ["ALGOLIA_ADMIN_API_KEY", "a".repeat(32), "Algolia admin API key"],
     ["CLOUDINARY_URL", "cloudinary://123456789012345:" + "a".repeat(30) + "@my-cloud", "Cloudinary URL with credentials"],
     ["STYTCH_SECRET", "secret-test-" + "a".repeat(40), "Stytch project secret"],
+    ["HEROKU_API_KEY", "12345678-1234-1234-1234-123456789abc", "Heroku API key"],
+    ["BUILDKITE_API_TOKEN", "bkua_" + "a".repeat(44), "Buildkite API token"],
     // Synthetic value that matches the Discord regex (three dotted segments
     // of the right lengths) without looking like a real base64-encoded
     // snowflake id. We use uppercase placeholder runs so GitHub's secret

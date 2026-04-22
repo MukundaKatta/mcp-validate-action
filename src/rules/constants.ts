@@ -15,6 +15,7 @@ export const KNOWN_SERVER_FIELDS = new Set([
   "description",
   "icon",
   "name",
+  "x-mcpcheck-ignore", // per-server rule suppression (mcpcheck extension)
 ]);
 
 /**
@@ -151,6 +152,17 @@ export const SECRET_PATTERNS: SecretPattern[] = [
   { name: "Algolia admin API key", re: /^[a-f0-9]{32}$/i, keyHint: /ALGOLIA/i },
   { name: "Cloudinary URL with credentials", re: /^cloudinary:\/\/\d{6,}:[A-Za-z0-9_-]{20,}@[A-Za-z0-9-]+$/ },
   { name: "Stytch project secret", re: /^secret-(test|live)-[A-Za-z0-9=_-]{30,}$/ },
+  // Heroku API keys are UUIDs; scope to HEROKU env hints.
+  {
+    name: "Heroku API key",
+    re: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+    keyHint: /HEROKU/i,
+  },
+  // Buildkite API tokens — bkua_ (user) / bks_ (org) / static prefix.
+  { name: "Buildkite API token", re: /^(bkua_|bks_)[A-Za-z0-9]{40,}$/ },
+  // OpenRouter uses sk-or- prefix but the broad OpenAI pattern matches first
+  // (it's earlier in the array). Same label-resolution reasoning as
+  // Clerk → Stripe and DeepSeek → OpenAI: the finding is still correct.
   // Google Cloud service account keys are JSON blobs; people sometimes paste the
   // whole thing into a single env var value. Match on the private_key_id field,
   // which is always a 40-char hex string immediately preceded by that key name.

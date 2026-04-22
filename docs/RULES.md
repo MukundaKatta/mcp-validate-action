@@ -30,6 +30,7 @@ This page is generated from `src/rule-docs.ts`. Don't edit it by hand.
 | [`unstable-reference`](#unstable-reference) | warning | no | `npx <pkg>` / `uvx <pkg>` / `docker run <image>` without a pinned version. |
 | [`http-without-auth`](#http-without-auth) | warning | no | A URL-transport server targets an https endpoint but declares no `Authorization` header. |
 | [`plaintext-http-with-token`](#plaintext-http-with-token) | error | no | The URL starts with `http://` (non-local) AND the server declares `Authorization` / `X-API-Key` / `Cookie` / similar. |
+| [`missing-digest-pin`](#missing-digest-pin) | info | no | `docker run image:1.0.0` pins the tag, but tags can be re-pushed. |
 | [`url-embedded-credentials`](#url-embedded-credentials) | error | no | `url: "https://user:password@host/…"` embeds RFC 3986 userinfo. |
 | [`password-flag-literal`](#password-flag-literal) | error | no | `args` contains `--password foo` / `--token xyz` / `--api-key abc` with a literal value (not `${VAR}`). |
 | [`non-ascii-server-name`](#non-ascii-server-name) | info | no | A server map key has characters outside basic ASCII. |
@@ -256,6 +257,19 @@ The URL starts with `http://` (non-local) AND the server declares `Authorization
 That token rides over the wire in cleartext; any on-path attacker sees it. `invalid-url` warns about plain http to non-local hosts in general; this rule fires only on the unambiguously-bad case where a credential is also being sent.
 
 **Fix:** switch the URL scheme to https (or drop the credential header if the server really is open).
+
+## missing-digest-pin
+
+**Docker image is tag-pinned but not digest-pinned**
+
+- Default severity: `info`
+- Autofix: no
+
+`docker run image:1.0.0` pins the tag, but tags can be re-pushed.
+
+Tag pins stop working the moment someone re-pushes the tag. Digest pins (`image@sha256:…`) are content-addressed. Fires only on images that already have a tag — `:latest` / missing tag / mutable-tag cases are caught by `unstable-reference` first.
+
+**Fix:** `docker inspect --format='{{index .RepoDigests 0}}' image:1.0.0` prints the digest-pinned form.
 
 ## url-embedded-credentials
 
