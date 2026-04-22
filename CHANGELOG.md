@@ -8,6 +8,20 @@ uses [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **`.mcpcheckignore`** — gitignore-style file in the cwd that removes
+  matching paths from the input list. Supports `#` comments, `**`
+  across slashes, `*` within a segment, leading `!` to re-include,
+  trailing `/` for dir-only. Resolved against paths relative to cwd;
+  paths outside cwd match against the basename.
+- **Global config `~/.mcpcheck/config.json`** — layers *under* any
+  `--config` the user passes, so you can turn a rule off once per
+  machine instead of duplicating `mcpcheck.config.json` in every
+  repo. Missing or malformed global config silently falls through
+  to defaults.
+- **`mcpcheck version`** — subcommand, not just the flag. Emits JSON
+  (`name`, `version`, `ruleCount`, `rules`, `schemas`) for tools
+  that want to assert a minimum-rule-count in CI or pin a specific
+  mcpcheck version against the rules they depend on.
 - **LSP: Quick Fix + Hover** — the LSP server now advertises
   `codeActionProvider` (quickfix + source.fixAll) and `hoverProvider`.
   In any LSP-capable editor, overlap a secret diagnostic → Quick Fix

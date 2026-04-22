@@ -39,6 +39,7 @@ import {
 } from "./baseline.js";
 import { upgradePins } from "./upgrade-pins.js";
 import { pathsForClient, knownClients } from "./cli-metadata.js";
+import { filterIgnored, loadIgnoreFile } from "./ignore.js";
 import { completionFor, isKnownShell, listShells } from "./completions.js";
 import { applyProfile, isKnownProfile, listProfiles } from "./profiles.js";
 import {
@@ -146,6 +147,25 @@ async function main(): Promise<void> {
     const { runLspServer } = await import("./lsp-server.js");
     await runLspServer();
     return;
+  }
+  if (process.argv[2] === "version") {
+    process.stdout.write(
+      JSON.stringify(
+        {
+          name: "mcpcheck",
+          version: readVersion(),
+          ruleCount: listRuleIds().length,
+          rules: listRuleIds(),
+          schemas: {
+            config: "schema.json",
+            mcpConfig: "schema/mcp-config.schema.json",
+          },
+        },
+        null,
+        2
+      ) + "\n"
+    );
+    process.exit(0);
   }
   if (process.argv[2] === "merge") {
     await handleMerge(process.argv.slice(3));
@@ -286,7 +306,15 @@ async function main(): Promise<void> {
       : undefined;
     config = applyProfile(opts.profile, userOverrides);
   } else {
-    config = opts.config ? loadConfigFileSafe(opts.config) : mergeConfig();
+    // Global config (~/.mcpcheck/config.json) merges in first, project
+    // --config layers on top. This gives users a single place to turn a
+    // rule off across every repo without duplicating mcpcheck.config.json
+    // everywhere.
+    const globalPartial = tryLoadGlobalConfig();
+    const base = globalPartial ? mergeConfig(globalPartial) : mergeConfig();
+    config = opts.config
+      ? mergeConfig({ ...base, ...loadConfigFileSafeRaw(opts.config) })
+      : base;
   }
   if (opts.printConfig) {
     process.stdout.write(JSON.stringify(config, null, 2) + "\n");
@@ -295,7 +323,9 @@ async function main(): Promise<void> {
 
   const extraRules = await loadPluginRules(config);
 
-  const files = await expandInputs(rawInputs);
+  const expanded = await expandInputs(rawInputs);
+  const ignore = await loadIgnoreRules();
+  const files = ignore ? filterIgnored(expanded, ignore) : expanded;
   if (files.length === 0) {
     process.stderr.write(pc.yellow("No MCP config files matched. Nothing to do.\n"));
     process.exit(0);
@@ -649,6 +679,22 @@ async function handleInit(argv: string[]): Promise<void> {
   process.exit(0);
 }
 
+/**
+ * Look for `~/.mcpcheck/config.json` and return the parsed partial, or
+ * undefined if it doesn't exist / isn't valid JSON. Used to let users set
+ * repo-wide defaults (severity overrides, include/exclude) once per
+ * machine rather than per-project.
+ */
+function tryLoadGlobalConfig(): Partial<Mcpcheckconfig> | undefined {
+  try {
+    const path = homedir() + "/.mcpcheck/config.json";
+    const raw = readFileSync(path, "utf8");
+    return JSON.parse(raw) as Partial<Mcpcheckconfig>;
+  } catch {
+    return undefined;
+  }
+}
+
 function loadConfigFileSafe(path: string): Mcpcheckconfig {
   try {
     return loadConfigFile(path);
@@ -690,6 +736,10 @@ async function loadPluginRules(config: Mcpcheckconfig): Promise<Rule[]> {
     if (p.premium && unlocked) p.premium({});
   }
   return extra;
+}
+
+async function loadIgnoreRules(): Promise<Awaited<ReturnType<typeof loadIgnoreFile>>> {
+  return loadIgnoreFile(".mcpcheckignore");
 }
 
 async function expandInputs(inputs: string[]): Promise<string[]> {

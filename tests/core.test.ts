@@ -648,6 +648,23 @@ describe("shell completions", () => {
   });
 });
 
+describe(".mcpcheckignore", () => {
+  it("parses gitignore-ish patterns and filters paths", async () => {
+    const { parseIgnore, filterIgnored } = await import("../src/ignore.js");
+    const rules = parseIgnore(
+      ["# comment", "", "node_modules/**", "*.backup.json", "!keep.backup.json"].join("\n")
+    );
+    const paths = [
+      "mcp.json",
+      "node_modules/foo/mcp.json",
+      "old.backup.json",
+      "keep.backup.json",
+    ];
+    const kept = filterIgnored(paths, rules);
+    assert.deepEqual(kept.sort(), ["keep.backup.json", "mcp.json"].sort());
+  });
+});
+
 describe("upgrade-pins", () => {
   it("rewrites an unpinned npx package using a stubbed fetch", async () => {
     const { upgradePins } = await import("../src/upgrade-pins.js");
