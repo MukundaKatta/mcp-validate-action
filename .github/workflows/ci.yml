@@ -39,6 +39,9 @@ jobs:
       - name: schema.json is in sync with RulesConfig
         run: npm run schema:check
 
+      - name: Every sub-package has a LICENSE
+        run: npm run licenses:check
+
   self-test:
     runs-on: ubuntu-latest
     needs: build-and-test

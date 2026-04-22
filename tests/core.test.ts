@@ -389,6 +389,71 @@ describe("formatters (markdown, junit)", () => {
   });
 });
 
+describe("upgrade-pins", () => {
+  it("rewrites an unpinned npx package using a stubbed fetch", async () => {
+    const { upgradePins } = await import("../src/upgrade-pins.js");
+    const { mkdtemp, writeFile, readFile } = await import("node:fs/promises");
+    const { tmpdir } = await import("node:os");
+    const { join } = await import("node:path");
+
+    const dir = await mkdtemp(join(tmpdir(), "mcp-upgrade-"));
+    const file = join(dir, "mcp.json");
+    await writeFile(
+      file,
+      `{
+  "mcpServers": {
+    "fs": { "command": "npx", "args": ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"] }
+  }
+}
+`,
+      "utf8"
+    );
+
+    // Stub fetch to return a fake "latest" version without touching the network.
+    const fakeFetch = (async (_url: string | URL) => {
+      return new Response(JSON.stringify({ version: "9.9.9" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }) as typeof fetch;
+
+    const dry = await upgradePins(file, { write: false, fetchImpl: fakeFetch });
+    assert.equal(dry.changes.length, 1);
+    assert.equal(dry.changes[0]!.newPkg, "@modelcontextprotocol/server-filesystem@9.9.9");
+    // Dry-run left the file alone.
+    assert.ok(!(await readFile(file, "utf8")).includes("@9.9.9"));
+
+    const live = await upgradePins(file, { write: true, fetchImpl: fakeFetch });
+    assert.equal(live.changes.length, 1);
+    const rewritten = await readFile(file, "utf8");
+    assert.ok(rewritten.includes("@modelcontextprotocol/server-filesystem@9.9.9"));
+    assert.ok(!rewritten.includes('"@modelcontextprotocol/server-filesystem"'));
+  });
+
+  it("skips packages that are already pinned", async () => {
+    const { upgradePins } = await import("../src/upgrade-pins.js");
+    const { mkdtemp, writeFile } = await import("node:fs/promises");
+    const { tmpdir } = await import("node:os");
+    const { join } = await import("node:path");
+
+    const dir = await mkdtemp(join(tmpdir(), "mcp-upgrade-"));
+    const file = join(dir, "mcp.json");
+    await writeFile(
+      file,
+      `{"mcpServers":{"fs":{"command":"npx","args":["-y","@org/pkg@1.2.3"]}}}`,
+      "utf8"
+    );
+    let calls = 0;
+    const neverFetch = (async () => {
+      calls += 1;
+      return new Response("{}", { status: 200 });
+    }) as typeof fetch;
+    const result = await upgradePins(file, { write: true, fetchImpl: neverFetch });
+    assert.equal(result.changes.length, 0);
+    assert.equal(calls, 0, "already-pinned packages should not hit the registry");
+  });
+});
+
 describe("baseline mode", () => {
   it("buildBaseline captures ruleId + jsonPath but not message", async () => {
     const { buildBaseline } = await import("../src/baseline.js");

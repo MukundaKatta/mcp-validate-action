@@ -37,6 +37,7 @@ import {
   loadBaseline,
   writeBaseline,
 } from "./baseline.js";
+import { upgradePins } from "./upgrade-pins.js";
 import type { Mcpcheckconfig, Rule, RunReport, FileReport } from "./types.js";
 
 type Format = "text" | "json" | "sarif" | "github" | "markdown" | "junit";
@@ -53,6 +54,7 @@ interface CliOptions {
   client?: string;
   baseline?: string;
   baselineWrite?: boolean;
+  watch: boolean;
 }
 
 const DEFAULT_BASELINE_PATH = ".mcpcheck.baseline.json";
@@ -149,6 +151,10 @@ async function main(): Promise<void> {
     process.stdout.write(formatDoctorText(statuses) + "\n");
     process.exit(doctorExitCode(statuses));
   }
+  if (process.argv[2] === "upgrade-pins") {
+    await handleUpgradePins(process.argv.slice(3));
+    return;
+  }
 
   const program = new Command()
     .name("mcpcheck")
@@ -175,6 +181,11 @@ async function main(): Promise<void> {
     .option(
       "--baseline-write [path]",
       `write the current issues as a baseline and exit 0 (default: ${DEFAULT_BASELINE_PATH})`
+    )
+    .option(
+      "-w, --watch",
+      "re-run every time an input file changes (Ctrl-C to exit)",
+      false
     )
     .version(readVersion(), "-v, --version")
     .addHelpText(
@@ -311,7 +322,58 @@ async function main(): Promise<void> {
   } else {
     process.stdout.write(out + (opts.format === "text" ? "\n" : "\n"));
   }
+
+  if (opts.watch) {
+    // Stay resident: re-run on every input-file change. We keep going even
+    // when exitCode() would be non-zero — the whole point of watch mode is
+    // iterative dev, not CI-grade exits.
+    await startWatch(files, opts, config, extraRules);
+    return;
+  }
   process.exit(exitCode(report, opts.failOn));
+}
+
+/**
+ * Watch-mode loop. Subscribes to each input file (via fs.watch) and re-runs
+ * the main scan on every change, debounced 150ms to coalesce editors that
+ * save via rename+rename.
+ */
+async function startWatch(
+  files: string[],
+  opts: CliOptions,
+  config: Mcpcheckconfig,
+  extraRules: Rule[]
+): Promise<void> {
+  const fs = await import("node:fs");
+  process.stderr.write(
+    pc.dim(`[watch] watching ${files.length} file(s) — Ctrl-C to exit\n`)
+  );
+  let debounce: NodeJS.Timeout | undefined;
+  const trigger = () => {
+    if (debounce) clearTimeout(debounce);
+    debounce = setTimeout(async () => {
+      process.stderr.write(pc.dim("\n[watch] re-running…\n"));
+      try {
+        const report = await checkFiles(files, { config, extraRules });
+        const view = opts.quiet && opts.format === "text" ? filterQuiet(report) : report;
+        process.stdout.write(renderReport(opts.format, view) + "\n");
+      } catch (err) {
+        process.stderr.write(pc.red(`[watch] error: ${(err as Error).message}\n`));
+      }
+    }, 150);
+  };
+  for (const f of files) {
+    try {
+      fs.watch(f, { persistent: true }, trigger);
+    } catch (err) {
+      process.stderr.write(
+        pc.yellow(`[watch] could not watch ${f}: ${(err as Error).message}\n`)
+      );
+    }
+  }
+  // Keep the process alive; fs.watch handles are enough but tidier to
+  // explicitly resume stdin as a belt-and-braces.
+  process.stdin.resume();
 }
 
 /**
@@ -322,6 +384,52 @@ async function main(): Promise<void> {
 function filterQuiet(report: RunReport): RunReport {
   const files: FileReport[] = report.files.filter((f) => f.issues.length > 0);
   return { ...report, files };
+}
+
+async function handleUpgradePins(argv: string[]): Promise<void> {
+  const write = argv.includes("--write");
+  const files = argv.filter((a) => !a.startsWith("-"));
+  if (files.length === 0 || argv.includes("-h") || argv.includes("--help")) {
+    process.stderr.write(
+      "Usage: mcpcheck upgrade-pins <file...> [--write]\n" +
+        "Look up the latest version on npm (for npx) or PyPI (for uvx) for each\n" +
+        "unpinned package in the given MCP configs. Without --write, prints the\n" +
+        "changes it would make. With --write, rewrites the files in place.\n"
+    );
+    process.exit(files.length === 0 ? 2 : 0);
+  }
+  let anyChanges = false;
+  for (const file of files) {
+    let result;
+    try {
+      result = await upgradePins(file, { write });
+    } catch (err) {
+      process.stderr.write(
+        pc.red(`[upgrade-pins] ${file}: ${(err as Error).message}\n`)
+      );
+      continue;
+    }
+    process.stdout.write(pc.bold(file) + "\n");
+    if (result.changes.length === 0 && result.skipped.length === 0) {
+      process.stdout.write(pc.dim("  nothing to upgrade (everything pinned or not a runner)\n"));
+      continue;
+    }
+    for (const c of result.changes) {
+      anyChanges = true;
+      process.stdout.write(
+        `  ${pc.green(write ? "✓" : "→")} ${c.server}: ${c.oldPkg} → ${pc.green(c.newPkg)}  ${pc.dim(`(${c.registry})`)}\n`
+      );
+    }
+    for (const s of result.skipped) {
+      process.stdout.write(
+        `  ${pc.yellow("!")} ${s.server}: ${s.pkg}  ${pc.dim(s.reason)}\n`
+      );
+    }
+    if (!write && result.changes.length > 0) {
+      process.stdout.write(pc.dim("  (dry run — re-run with --write to apply)\n"));
+    }
+  }
+  process.exit(anyChanges && !write ? 1 : 0);
 }
 
 async function handleStats(argv: string[]): Promise<void> {

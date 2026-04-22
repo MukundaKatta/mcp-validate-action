@@ -28,6 +28,7 @@
     "schema:gen": "node scripts/gen-schema.mjs",
     "schema:check": "node scripts/gen-schema.mjs && git diff --exit-code -- schema.json",
     "bench": "node scripts/bench.mjs",
+    "licenses:check": "node scripts/check-licenses.mjs",
     "prepublishOnly": "npm run build && npm test && npm run docs:check && npm run schema:check"
   },
   "keywords": [

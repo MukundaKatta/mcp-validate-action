@@ -83,6 +83,8 @@ mcpcheck init                                # scaffold mcpcheck.config.json + C
 mcpcheck diff a.json b.json                  # show which issues changed between two configs
 mcpcheck --baseline-write                    # snapshot today's issues
 mcpcheck --baseline                          # in CI: fail only on new issues
+mcpcheck upgrade-pins mcp.json --write       # pin every unpinned npx/uvx pkg
+mcpcheck --watch mcp.json                    # re-run on file change
 ```
 
 | Flag | Purpose |

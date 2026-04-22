@@ -8,6 +8,22 @@ uses [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **`mcpcheck upgrade-pins <file...>`** — for every unpinned
+  `npx <pkg>` / `uvx <pkg>` in the given configs, look up the latest
+  version on npm / PyPI and rewrite the package reference in place
+  (`--write`) or preview the changes (default dry-run). Docker images
+  are skipped for now — Docker Hub / ghcr.io auth-and-rate-limit is
+  different enough to deserve its own flag later. Rewrites preserve
+  the file's JSONC formatting (comments and whitespace) via raw-source
+  string-literal replacement, so you can run it against
+  `claude_desktop_config.json`-style commented configs without losing
+  your comments.
+- **`mcpcheck --watch`** / **`-w`** — stays resident and re-runs the
+  scan on every input-file change (fs.watch, 150ms debounce). Ctrl-C
+  to exit. For iterative dev, not CI; does not exit on issues.
+- **`npm run licenses:check` + CI gate** — fails the build if any
+  sub-package (`extensions/*`, root) ships without a LICENSE file.
+  Backfilled LICENSE into `extensions/rule-plugin-starter/`.
 - **`mcpcheck --baseline` / `--baseline-write`** — adopt mcpcheck on a
   codebase with existing issues without asking the team to fix
   everything at once. `--baseline-write` snapshots today's issues to
