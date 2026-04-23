@@ -29,11 +29,17 @@ jobs:
         id: notes
         run: |
           TAG="${GITHUB_REF_NAME}"
-          # Strip leading "v" from tag to match a "## [1.2.3]" heading.
           VER="${TAG#v}"
-          # Print everything between the first "## [$VER]" and the next "## [".
-          awk -v ver="## [$VER]" '
-            $0 ~ ver, /^## \[/ { if ($0 ~ ver) { found=1; next } if (found && /^## \[/) exit; if (found) print }
+          # State-machine awk, not a range pattern: the bracket-containing
+          # heading `## [1.2.3]` would be read as a regex character class
+          # by `~`, silently matching nothing. `index()` does a plain
+          # substring check instead.
+          awk -v ver="$VER" '
+            /^## \[/ {
+              if (found) exit
+              if (index($0, "[" ver "]") > 0) { found=1; next }
+            }
+            found { print }
           ' CHANGELOG.md > RELEASE_NOTES.md
           if [ ! -s RELEASE_NOTES.md ]; then
             echo "(No CHANGELOG entry found for $TAG; using auto-notes.)" > RELEASE_NOTES.md
