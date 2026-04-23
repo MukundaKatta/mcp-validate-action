@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  mcpcheck VS Code extension icon.
+  Design intent: a dark rounded square with a bold cyan checkmark. The
+  checkmark signals "lint / check" without any text; the dark palette
+  matches the playground and works against both light and dark marketplace
+  backgrounds. Colors match the CSS vars used in playground/public/styles.css.
+  Rasterised to icon.png (128×128) for marketplace submission; keep this SVG
+  as the source of truth.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <rect x="0" y="0" width="128" height="128" rx="24" fill="#0d1017"/>
+  <path d="M32 68 L54 90 L96 38"
+        stroke="#7dd3fc"
+        stroke-width="12"
+        fill="none"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+</svg>

@@ -144,12 +144,15 @@ jobs:
       - name: Package VSIX
         run: npx --yes @vscode/vsce@^3 package --no-dependencies --no-git-tag-version
 
-      - name: VSIX contains extension.cjs and bundled JSON schemas
+      - name: VSIX contains extension.cjs, bundled JSON schemas, and icon
         run: |
           VSIX=$(ls *.vsix | head -1)
           unzip -l "$VSIX" | grep -q 'extension/out/extension.cjs'
           unzip -l "$VSIX" | grep -q 'extension/schema/mcpcheck.schema.json'
           unzip -l "$VSIX" | grep -q 'extension/schema/mcp-config.schema.json'
+          unzip -l "$VSIX" | grep -q 'extension/icon.png'
+          # icon.svg is source-only — should NOT ship.
+          ! unzip -l "$VSIX" | grep -q 'extension/icon.svg'
 
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v4
